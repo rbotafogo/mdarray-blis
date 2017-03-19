@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
-# @author Rodrigo Botafogo
-#
-# Copyright © 2017 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
+# Copyright © 2016 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
 # paragraph and the following two paragraphs appear in all copies, modifications, and 
@@ -21,11 +19,8 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require 'mdarray'
+require_relative 'test_partitions_vec'
+require_relative 'test_partitions_matrix'
 
-require_relative '../config'
-
-require_relative 'blis/laff_matrix'
-require_relative 'ruby_interface/base/vecvec'
-
+require_relative 'test_laff_vecvec'
 

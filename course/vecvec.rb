@@ -33,12 +33,12 @@ class Course
   #------------------------------------------------------------------------------------
   
   def self.dotv(r_vec, c_vec)
+
+    r_vec.part_by(:column, :lr)
+    c_vec.part_by(:row, :tb)
     
     dot = r_vec[0, 0] * c_vec[0, 0]
-    Laff.part_synchronized(r_vec, Laff.method(:part_by_column_lr),
-                           c_vec, Laff.method(:part_by_row_tb),
-                           vec_size: r_vec.shape[1],
-                           filter1: 0b01, filter2: 0b01) do |left, top|
+    r_vec.part_synchronized(c_vec, filter1: 0b01, filter2: 0b01) do |left, top|
       dot += left[0, 0] * top[0, 0]
     end
     dot
@@ -46,16 +46,16 @@ class Course
   end
   
   #------------------------------------------------------------------------------------
-  #
+  # Performs an axpy operation between a row vector and a column vector
   #------------------------------------------------------------------------------------
 
-  def self.axpyv(alfa, vec1, vec2)
+  def self.axpyv(alfa, r_vec, c_vec)
 
-    vec1[0, 0] = alfa * vec1[0, 0] + vec2[0, 0]
-    Laff.part_synchronized(vec1, Laff.method(:part_by_row_tb),
-                           vec2, Laff.method(:part_by_row_tb),
-                           vec_size: vec1.shape[0],
-                           filter1: 0b01, filter2: 0b01) do |top1, top2|
+    r_vec.part_by(:column, :lr)
+    c_vec.part_by(:row, :tb)
+    
+    r_vec[0, 0] = alfa * r_vec[0, 0] + c_vec[0, 0]
+    r_vec.part_synchronized(c_vec, filter1: 0b01, filter2: 0b01) do |top1, top2|
       top1[0, 0] = alfa * top1[0, 0] + top2[0, 0]
     end
     true

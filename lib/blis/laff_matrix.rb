@@ -21,49 +21,47 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-class LaffMatrix < DoubleMDArray
-  include_package "ucar.ma2"
 
-  attr_accessor :nrows
-  attr_accessor :ncolumns
+module LaffMatrix
+
   attr_reader :pfunction
+  attr_reader :part_to
 
   #------------------------------------------------------------------------------------
   #
   #------------------------------------------------------------------------------------
-  
-  def initialize(shape, storage = nil, layout = :row)
 
-    # Java-NetCDF creates an ArrayObject when given type string.  It should create an
-    # ArrayString instead.  Some string methods in Java-NetCDF expect an ArrayObject
-    # instead of an ArrayString, however, other libraries actually expect an ArrayString,
-    # so we know have two type: "string" stores internally the data as an ArrayObject, 
-    # "rstring" stores data internally as an ArrayString
-    dtype = DataType::DOUBLE
-    jshape = shape.to_java :int
-
-    if (storage)
-      jstorage = storage.to_java :double
-      nc_array = Java::UcarMa2.Array.factory(dtype, jshape, jstorage)
-    else
-      nc_array = Java::UcarMa2.Array.factory(dtype, jshape)
+  def part_by(type, direction)
+    case type
+    when :column
+      @part_to = shape[1]
+      case direction
+      when :lr
+        @pfunction = method(:part_by_column_lr)
+      when :rl
+        @pfunction = method(:part_by_column_rl)
+      else
+        raise "Wrong direction #{direction}, should be either :lr or :rl"
+      end
+    when :row
+      @part_to = shape[0]
+      case direction
+      when :tb
+        @pfunction = method(:part_by_row_tb)
+      when :bt
+        @pfunction = method(:part_by_row_bt)
+      else
+        raise "Wrong direction #{direction}, should be either :tb or :bt"
+      end
     end
-
-    super("double", nc_array)
-    
-    @nrows = shape[0]
-    @ncolumns = shape[1]
     
   end
+  
+end
 
-  #------------------------------------------------------------------------------------
-  #
-  #------------------------------------------------------------------------------------
-  
-  def partition_function=(name)
-    @pfunction = method(name)
-  end
-  
+class MDArray
+  include LaffMatrix
+
   #====================================================================================
   #
   #====================================================================================
@@ -124,6 +122,7 @@ class LaffMatrix < DoubleMDArray
 
 end
 
-require_relative 'util/partitions'
+require_relative 'util/vec_partitions'
+require_relative 'util/matrix_partitions'
 require_relative 'base/vecvec'
 require_relative 'base/matrixvec'

@@ -26,9 +26,9 @@ require '../config' if @platform == nil
 require 'mdarray-laff'
 
 
-class MDArrayLaffTest < Test::Unit::TestCase
+class LaffMatrixTest < Test::Unit::TestCase
 
-  context "Laff" do
+  context "LaffMatrix" do
 
     #--------------------------------------------------------------------------------------
     #
@@ -38,11 +38,11 @@ class MDArrayLaffTest < Test::Unit::TestCase
 
       # a vector is an MDArray with one of it´s dimension equal to 1
       # this is a row vector with 4 rows and 1 column
-      @array1 = MDArray.double([4, 4],
-                              [1, 2, 3, 4,
-                               5, 6, 7, 8,
-                               9, 10,11, 12,
-                               13, 14, 15, 16])
+      @matrix = LaffMatrix.new([4, 4],
+                               [1, 2, 3, 4,
+                                5, 6, 7, 8,
+                                9, 10,11, 12,
+                                13, 14, 15, 16])
       
     end
 
@@ -52,7 +52,9 @@ class MDArrayLaffTest < Test::Unit::TestCase
 
     should "partition an array by quadrants left/right, top/bottom" do
 
-      part = Laff.part_4vec_lr_tb(@array1, pos: 2)
+      @matrix.partition_function = :part_4vec_lr_tb
+
+      part = @matrix.part_4vec_lr_tb(pos: 2)
       part[0].pp
       part[1].pp
       part[2].pp
@@ -66,7 +68,7 @@ class MDArrayLaffTest < Test::Unit::TestCase
 
     should "walk the whole matrix partitioning lr" do
       
-      Laff.all_4vec_lr_tb(@array1) do |tl, tr, bl, br|
+      @matrix.all_4vec_lr_tb do |tl, tr, bl, br|
         p "==========================="
         tl.pp
         tr.pp

@@ -38,9 +38,9 @@ class MDArrayLaffTest < Test::Unit::TestCase
 
       # a vector is an MDArray with one of it´s dimension equal to 1
       # this is a row vector with 4 rows and 1 column
-      @r_vec = LaffMatrix.new([1, 4], [1, 2, 3, 4])
-      @r_vec2 = LaffMatrix.new([1, 4], [1, 2, 3, 5])
-      @c_vec = LaffMatrix.new([4, 1], [1, 2, 3, 4])
+      @r_vec = MDArray.double([1, 4], [1, 2, 3, 4])
+      @r_vec2 = MDArray.double([1, 4], [1, 2, 3, 5])
+      @c_vec = MDArray.double([4, 1], [1, 2, 3, 4])
       
     end
 
@@ -54,20 +54,20 @@ class MDArrayLaffTest < Test::Unit::TestCase
       # with the rest of the columns
       # al, ar = Laff.part_by_row_tb
       at, ab = @c_vec.part_by_row_tb(part_size: 1)
-      assert_equal(true, LaffMatrix.new([1, 1], [1]).identical(at))
-      assert_equal(true, LaffMatrix.new([3, 1], [2, 3, 4]).identical(ab))
+      assert_equal(true, MDArray.double([1, 1], [1]).identical(at))
+      assert_equal(true, MDArray.double([3, 1], [2, 3, 4]).identical(ab))
 
       # filter the results returning only the right vector
       ret = @c_vec.part_by_row_tb(part_size: 2, filter: 0b01)
-      assert_equal(true, LaffMatrix.new([2, 1], [3, 4]).identical(ret[0]))
+      assert_equal(true, MDArray.double([2, 1], [3, 4]).identical(ret[0]))
 
       # filter the results returning only the left vector
       ret = @c_vec.part_by_row_tb(part_size: 2, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([2, 1], [1, 2]).identical(ret[0]))
+      assert_equal(true, MDArray.double([2, 1], [1, 2]).identical(ret[0]))
 
       # filter the results returning only the top vector
       ret = @c_vec.part_by_row_tb(part_size: 3, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([3, 1], [1, 2, 3]).identical(ret[0]))
+      assert_equal(true, MDArray.double([3, 1], [1, 2, 3]).identical(ret[0]))
 
     end
 
@@ -81,20 +81,20 @@ class MDArrayLaffTest < Test::Unit::TestCase
       # with the rest of the columns
       # al, ar = Laff.part_by_row_bt
       at, ab = @c_vec.part_by_row_bt(part_size: 1)
-      assert_equal(true, LaffMatrix.new([3, 1], [1, 2, 3]).identical(at))
-      assert_equal(true, LaffMatrix.new([1, 1], [4]).identical(ab))
+      assert_equal(true, MDArray.double([3, 1], [1, 2, 3]).identical(at))
+      assert_equal(true, MDArray.double([1, 1], [4]).identical(ab))
 
       # filter the results returning only the bottom vector
       ret = @c_vec.part_by_row_bt(part_size: 2, filter: 0b01)
-      assert_equal(true, LaffMatrix.new([2, 1], [3, 4]).identical(ret[0]))
+      assert_equal(true, MDArray.double([2, 1], [3, 4]).identical(ret[0]))
 
       # filter the results returning only the top vector
       ret = @c_vec.part_by_row_bt(part_size: 2, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([2, 1], [1, 2]).identical(ret[0]))
+      assert_equal(true, MDArray.double([2, 1], [1, 2]).identical(ret[0]))
 
       # filter the results returning only the left vector
       ret = @c_vec.part_by_row_bt(part_size: 3, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([1, 1], [1]).identical(ret[0]))
+      assert_equal(true, MDArray.double([1, 1], [1]).identical(ret[0]))
 
     end
 
@@ -108,20 +108,20 @@ class MDArrayLaffTest < Test::Unit::TestCase
       # with the rest of the columns
       # al, ar = Laff.part_by_column_lr
       al, ar = @r_vec.part_by_column_lr(part_size: 1)
-      assert_equal(true, LaffMatrix.new([1, 1],[1]).identical(al))
-      assert_equal(true, LaffMatrix.new([1, 3], [2, 3, 4]).identical(ar))
+      assert_equal(true, MDArray.double([1, 1],[1]).identical(al))
+      assert_equal(true, MDArray.double([1, 3], [2, 3, 4]).identical(ar))
 
       # filter the results returning only the right vector
       ret = @r_vec.part_by_column_lr(part_size: 2, filter: 0b01)
-      assert_equal(true, LaffMatrix.new([1, 2], [3, 4]).identical(ret[0]))
+      assert_equal(true, MDArray.double([1, 2], [3, 4]).identical(ret[0]))
 
       # filter the results returning only the left vector
       ret = @r_vec.part_by_column_lr(part_size: 2, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([1, 2], [1, 2]).identical(ret[0]))
+      assert_equal(true, MDArray.double([1, 2], [1, 2]).identical(ret[0]))
 
       # filter the results returning only the left vector
       ret = @r_vec.part_by_column_lr(part_size: 3, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([1, 3], [1, 2, 3]).identical(ret[0]))
+      assert_equal(true, MDArray.double([1, 3], [1, 2, 3]).identical(ret[0]))
 
     end
 
@@ -135,20 +135,20 @@ class MDArrayLaffTest < Test::Unit::TestCase
       # with the rest of the columns
       # al, ar = Laff.part_by_column_rl
       al, ar = @r_vec.part_by_column_rl(part_size: 1)
-      assert_equal(true, LaffMatrix.new([1, 3], [1, 2, 3]).identical(al))
-      assert_equal(true, LaffMatrix.new([1, 1], [4]).identical(ar))
+      assert_equal(true, MDArray.double([1, 3], [1, 2, 3]).identical(al))
+      assert_equal(true, MDArray.double([1, 1], [4]).identical(ar))
 
       # filter the results returning only the right vector
       ret = @r_vec.part_by_column_rl(part_size: 2, filter: 0b01)
-      assert_equal(true, LaffMatrix.new([1, 2], [3, 4]).identical(ret[0]))
+      assert_equal(true, MDArray.double([1, 2], [3, 4]).identical(ret[0]))
 
       # filter the results returning only the left vector
       ret = @r_vec.part_by_column_rl(part_size: 2, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([1, 2], [1, 2]).identical(ret[0]))
+      assert_equal(true, MDArray.double([1, 2], [1, 2]).identical(ret[0]))
 
       # filter the results returning only the left vector
       ret = @r_vec.part_by_column_rl(part_size: 3, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([1, 1], [1]).identical(ret[0]))
+      assert_equal(true, MDArray.double([1, 1], [1]).identical(ret[0]))
 
     end
 
@@ -158,19 +158,19 @@ class MDArrayLaffTest < Test::Unit::TestCase
 
     should "partition an array by columns left to right" do
     
-      array = LaffMatrix.new([2, 3], [1, 2, 3, 4, 5, 6])
+      array = MDArray.double([2, 3], [1, 2, 3, 4, 5, 6])
 
       al, ar = array.part_by_column_lr(part_size: 1)
-      assert_equal(true, LaffMatrix.new([2, 1], [1, 4]).identical(al))
-      assert_equal(true, LaffMatrix.new([2, 2], [2, 3, 5, 6]).identical(ar))
+      assert_equal(true, MDArray.double([2, 1], [1, 4]).identical(al))
+      assert_equal(true, MDArray.double([2, 2], [2, 3, 5, 6]).identical(ar))
 
       # get only the left side.  The returned value is an array of size 1
       al = array.part_by_column_lr(part_size: 1, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([2, 1], [1, 4]).identical(al[0]))
+      assert_equal(true, MDArray.double([2, 1], [1, 4]).identical(al[0]))
 
       # get only the right side.  The returned value is an array of size 1
       ar = array.part_by_column_lr(part_size: 2, filter: 0b01)
-      assert_equal(true, LaffMatrix.new([2, 1], [3, 6]).identical(ar[0]))
+      assert_equal(true, MDArray.double([2, 1], [3, 6]).identical(ar[0]))
 
     end
 
@@ -180,19 +180,19 @@ class MDArrayLaffTest < Test::Unit::TestCase
 
     should "partition an array by columns right to left" do
     
-      array = LaffMatrix.new([2, 3], [1, 2, 3, 4, 5, 6])
+      array = MDArray.double([2, 3], [1, 2, 3, 4, 5, 6])
 
       al, ar = array.part_by_column_rl(part_size: 1)
-      assert_equal(true, LaffMatrix.new([2, 2], [1, 2, 4, 5]).identical(al))
-      assert_equal(true, LaffMatrix.new([2, 1], [3, 6]).identical(ar))
+      assert_equal(true, MDArray.double([2, 2], [1, 2, 4, 5]).identical(al))
+      assert_equal(true, MDArray.double([2, 1], [3, 6]).identical(ar))
 
       # get only the left side.  The returned value is an array of size 1
       al = array.part_by_column_rl(part_size: 1, filter: 0b10)
-      assert_equal(true, LaffMatrix.new([2, 2], [1, 2, 4, 5]).identical(al[0]))
+      assert_equal(true, MDArray.double([2, 2], [1, 2, 4, 5]).identical(al[0]))
 
       # get only the right side.  The returned value is an array of size 1
       ar = array.part_by_column_rl(part_size: 2, filter: 0b01)
-      assert_equal(true, LaffMatrix.new([2, 2], [2, 3, 5, 6]).identical(ar[0]))
+      assert_equal(true, MDArray.double([2, 2], [2, 3, 5, 6]).identical(ar[0]))
 
     end
 
@@ -202,28 +202,31 @@ class MDArrayLaffTest < Test::Unit::TestCase
 
     should "partition two vectors synchronized" do
 
-      
-      @r_vec.partition_function = :part_by_column_lr
-      @c_vec.partition_function = :part_by_row_tb
+      # @r_vec = MDArray.double([1, 4], [1, 2, 3, 4])
+      # @c_vec = MDArray.double([4, 1], [1, 2, 3, 4])
 
-      @r_vec.part_synchronized(@c_vec,
-                               to: @r_vec.ncolumns - 1) do |vec1_l, vec1_r, vec2_t, vec2_b|
+      # partition the row vector from left to right
+      @r_vec.part_by(:column, :lr)
+      # partition the column vector from top to bottom
+      @c_vec.part_by(:row, :tb)
+
+      # call part_synchronized until the number of columns minus one of the row vec
+      @r_vec.part_synchronized(@c_vec) do |vec1_l, vec1_r, vec2_t, vec2_b|
+        p "======================"
         vec1_l.pp
         vec1_r.pp
         vec2_t.pp
         vec2_b.pp
       end
 
-
-=begin
-      Laff.part_synchronized(@r_vec, Laff.method(:part_by_column_lr),
-                             @c_vec, Laff.method(:part_by_row_tb),
-                             vec_size: @r_vec.shape[1], filter1: 0b01,
-                             filter2: 0b01) do |vec1_r, vec2_b|
+      @r_vec.part_synchronized(@c_vec,
+                               filter1: 0b01,
+                               filter2: 0b01) do |vec1_r, vec2_b|
+        p "======== filtered ========"
         vec1_r.pp
         vec2_b.pp
       end
-=end            
+
     end
 
   end
