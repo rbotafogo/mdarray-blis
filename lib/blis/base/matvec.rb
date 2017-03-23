@@ -21,16 +21,27 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-class Laff
+class Blis
 
   #------------------------------------------------------------------------------------
-  # Generalized matrix vector multiply
+  # Generalized matrix vector multiply using dotv
   # y := beta*y + alfa*Ax
   #------------------------------------------------------------------------------------
 
-  def self.gemv(alfa, beta, y_vec, matrix, x_vec)
+  def self.gemv_dot(alfa, beta, y_vec, matrix, x_vec)
 
-    
+    matrix.part_by(:row, column_dir: :tb, filter: 0b10)
+    y_vec.part_by(:row, column_dir: :tb, filter: 0b10)
+
+    mpart = matrix.each_part
+    ypart = y_vec.each_part
+
+    loop do
+      top = mpart.next
+      elmt = ypart.next
+      elmt[0, 0] = beta * elmt[0, 0] + alfa * Blis.dotv(top, x_vec)
+    end
+
   end
   
 end

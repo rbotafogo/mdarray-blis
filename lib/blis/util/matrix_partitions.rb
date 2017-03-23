@@ -24,35 +24,89 @@
 class MDArray
 
   #------------------------------------------------------------------------------------
-  # Partitions an array in four quadrants left to right and top to bottom
+  # Returns four specific vectors from a Matrix based on an element of the Matrix.  The
+  # first partition only has two vectors, the other two vectors are empty.
   #------------------------------------------------------------------------------------
 
-  def part_4vec_lr_tb(pos:, filter: 0b1111, empty: EmptyArray.new(0))
+  def part_by_four_vecs_lr_tb_first_part(filter: 0b1111, empty: EmptyArray.new(nil))
 
     part = []
 
-    # first vector
-    ((filter & 0b1000) != 0) &&
-      part << region(origin: [0, pos], size: [pos, 1], stride: [1, 1])
+    # first vector: top vector is empty
+    ((filter & 0b1000) != 0) && part << empty
 
-    # second vector
+    # second vector: bottom vector
     ((filter & 0b0100) != 0) &&
-      part << region(origin: [pos+1, pos], size: [shape[0] - (pos+1), 1],
+      part << region(origin: [1, 0], size: [shape[0] - 1, 1], stride: [1, 1])
+
+    # third vector: left vector is empty
+    ((filter & 0b0010) != 0) && part << empty
+
+    # fourth vector: right vector
+    ((filter & 0b0001) != 0) &&
+      part << region(origin: [0, 1], size: [1, shape[1] - 1], stride: [1, 1])
+
+    part
+
+  end
+
+  #------------------------------------------------------------------------------------
+  #
+  #------------------------------------------------------------------------------------
+
+  def part_by_four_vecs_lr_tb(part_size:, filter: 0b1111)
+
+    part = []
+
+    # first vector: top vector
+    ((filter & 0b1000) != 0) &&
+      part << region(origin: [0, part_size], size: [part_size, 1], stride: [1, 1])
+
+    # second vector: bottom vector
+    ((filter & 0b0100) != 0) &&
+      part << region(origin: [part_size+1, part_size], size: [shape[0] - (part_size+1), 1],
                      stride: [1, 1])
 
-    # third vector
+    # third vector: left vector
     ((filter & 0b0010) != 0) && 
-      part << region(origin: [pos, 0], size: [1, pos], stride: [1, 1])
+      part << region(origin: [part_size, 0], size: [1, part_size], stride: [1, 1])
     
-    # fourth vector
+    # fourth vector: right vector
     ((filter & 0b0001) != 0) &&
-      part << region(origin: [pos, pos+1], size: [1, shape[1] - (pos+1)],
+      part << region(origin: [part_size, part_size+1], size: [1, shape[1] - (part_size+1)],
                      stride: [1, 1])
 
     part
     
   end
   
+  #------------------------------------------------------------------------------------
+  # Returns four specific vectors from a Matrix based on an element of the Matrix.
+  #------------------------------------------------------------------------------------
+
+  def part_by_four_vecs_lr_tb_last_part(filter: 0b1111, empty: EmptyArray.new(nil))
+
+    part = []
+    part_size ||= shape.min - 1
+
+    # first vector: top vector
+    ((filter & 0b1000) != 0) &&
+      part << region(origin: [0, part_size], size: [part_size, 1], stride: [1, 1])
+
+    # second vector: bottom vector is empty
+    ((filter & 0b0100) != 0) && part << empty
+
+    # third vector: left vector
+    ((filter & 0b0010) != 0) && 
+      part << region(origin: [part_size, 0], size: [1, part_size], stride: [1, 1])
+    
+    # fourth vector: right vector is empty
+    ((filter & 0b0001) != 0) && part << empty
+
+    part
+
+  end
+
   #------------------------------------------------------------------------------------
   # Partitions an array in four quadrants left to right and top to bottom
   #------------------------------------------------------------------------------------
@@ -86,25 +140,5 @@ class MDArray
     part
     
   end
-
-  #------------------------------------------------------------------------------------
-  #
-  #------------------------------------------------------------------------------------
-
-  def all_4vec_lr_tb(filter: 0b1111)
-
-    # this is an m x n matrix
-    @steps ||= shape.min
-
-    (1..steps).each do |step|
-      part = Laff.part_4vec_lr_tb(pos: step, filter: filter)
-      yield part
-    end
-    
-  end
-  
-  #------------------------------------------------------------------------------------
-  # 
-  #------------------------------------------------------------------------------------
 
 end

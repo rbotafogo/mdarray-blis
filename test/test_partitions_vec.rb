@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
-# Copyright © 2016 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
+# Copyright © 2017 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
 # paragraph and the following two paragraphs appear in all copies, modifications, and 
@@ -200,16 +200,74 @@ class MDArrayLaffTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
+    should "get every partition from a vector" do
+
+      @r_vec.part_by(:column, row_dir: :lr)
+      @r_vec.each_part do |left, right|
+        p "new partition============"
+        left.pp
+        right.pp
+      end
+
+      @c_vec.part_by(:row, column_dir: :bt)
+      @c_vec.each_part do |top, bottom|
+        p "===== new partition ====="
+        top.pp
+        bottom.pp
+      end      
+      
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+    
+    should "get every partition from a vector as enumerator" do
+
+      p "=================enumerator====================="
+      @r_vec.part_by(:column, row_dir: :lr)
+      
+      part = @r_vec.each_part
+      left, right = part.next
+      left.pp
+      right.pp
+
+      left, right = part.next
+      left.pp
+      right.pp
+      
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
     should "partition two vectors synchronized" do
 
       # @r_vec = MDArray.double([1, 4], [1, 2, 3, 4])
       # @c_vec = MDArray.double([4, 1], [1, 2, 3, 4])
 
       # partition the row vector from left to right
-      @r_vec.part_by(:column, :lr)
+      @r_vec.part_by(:column, row_dir: :lr)
+      
       # partition the column vector from top to bottom
-      @c_vec.part_by(:row, :tb)
+      @c_vec.part_by(:row, column_dir: :tb)
 
+      p "==============partition synchronized==========="
+
+      rvec = @r_vec.each_part
+      cvec = @c_vec.each_part
+
+      loop do
+        rl, rr = rvec.next
+        ct, cb = cvec.next
+        rl.pp
+        rr.pp
+        ct.pp
+        cb.pp
+      end
+      
+=begin      
       # call part_synchronized until the number of columns minus one of the row vec
       @r_vec.part_synchronized(@c_vec) do |vec1_l, vec1_r, vec2_t, vec2_b|
         p "======================"
@@ -226,7 +284,7 @@ class MDArrayLaffTest < Test::Unit::TestCase
         vec1_r.pp
         vec2_b.pp
       end
-
+=end
     end
 
   end

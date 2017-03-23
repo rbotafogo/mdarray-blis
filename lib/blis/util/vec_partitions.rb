@@ -35,7 +35,8 @@ class MDArray
 
     # left part
     ((filter & 0b10) > 0) &&
-      part << region(origin: [0, 0], size: [shape[0], part_size], stride: [1, 1])
+      # part << region(origin: [0, 0], size: [shape[0], part_size], stride: [1, 1])
+      part << region(origin: [0, part_size], size: [shape[0], 1], stride: [1, 1])      
 
     # right part
     ((filter & 0b01) > 0) &&
@@ -81,7 +82,8 @@ class MDArray
 
     # top part
     ((filter & 0b10) != 0) &&
-      part << region(origin: [0, 0], size: [part_size, shape[1]], stride: [1, 1])
+      # part << region(origin: [0, 0], size: [part_size, shape[1]], stride: [1, 1])
+      part << region(origin: [part_size, 0], size: [1, shape[1]], stride: [1, 1])
 
     # bottom part
     ((filter & 0b01) != 0) &&
@@ -115,20 +117,6 @@ class MDArray
                      stride: [1, 1])
     
     part
-    
-  end
-
-  #------------------------------------------------------------------------------------
-  # Partitions two arrays simultaneously.  Use 
-  #------------------------------------------------------------------------------------
-
-  def part_synchronized(other, filter1: 0b11, filter2: 0b11)
-
-    (1..@part_to - 1).each do |part_size|
-      part1 = @pfunction.call(part_size: part_size, filter: filter1)
-      part2 = other.pfunction.call(part_size: part_size, filter: filter2)
-      yield *part1, *part2
-    end
     
   end
 

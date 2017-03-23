@@ -35,7 +35,7 @@ class MDArray
     raise "Incompatible dimensions for dot between self.shape and other.shape" if
       (self.shape[0] != other.shape[1]) && (self.shape[1] != other.shape[0])
 
-    Laff.dotv(self, other)
+    Blis.dotv(self, other)
 
   end
     

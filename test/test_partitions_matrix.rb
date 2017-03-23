@@ -38,7 +38,7 @@ class LaffMatrixTest < Test::Unit::TestCase
 
       # a vector is an MDArray with one of it´s dimension equal to 1
       # this is a row vector with 4 rows and 1 column
-      @matrix = LaffMatrix.new([4, 4],
+      @matrix = MDArray.double([4, 4],
                                [1, 2, 3, 4,
                                 5, 6, 7, 8,
                                 9, 10,11, 12,
@@ -50,15 +50,15 @@ class LaffMatrixTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "partition an array by quadrants left/right, top/bottom" do
+    should "partition an array by columns from left to right" do
 
-      @matrix.partition_function = :part_4vec_lr_tb
-
-      part = @matrix.part_4vec_lr_tb(pos: 2)
-      part[0].pp
-      part[1].pp
-      part[2].pp
-      part[3].pp
+      @matrix.part_by(:column, row_dir: :lr)
+      
+      @matrix.each_part do |left, right|
+        p "new partition============"
+        left.pp
+        right.pp
+      end
       
     end
     
@@ -66,9 +66,56 @@ class LaffMatrixTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "walk the whole matrix partitioning lr" do
+    should "partition an array by rows from top to bottom" do
+
+      @matrix.part_by(:row, column_dir: :tb)
       
-      @matrix.all_4vec_lr_tb do |tl, tr, bl, br|
+      @matrix.each_part do |top, bottom|
+        p "new partition============"
+        top.pp
+        bottom.pp
+      end
+      
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "slice an array returning 4 vectors left/right, top/bottom" do
+
+      p "first part"
+      first_part = @matrix.part_by_four_vecs_lr_tb_first_part
+      first_part[0].pp
+      first_part[1].pp
+      first_part[2].pp
+      first_part[3].pp
+
+      p "body part"
+      part = @matrix.part_by_four_vecs_lr_tb(part_size: 2)
+      part[0].pp
+      part[1].pp
+      part[2].pp
+      part[3].pp
+
+      p "last part"
+      last_part = @matrix.part_by_four_vecs_lr_tb_last_part
+      last_part[0].pp
+      last_part[1].pp
+      last_part[2].pp
+      last_part[3].pp
+      
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "partition the matrix in 4 vectors" do
+
+      @matrix.part_by(:four_vecs, row_dir: :lr, column_dir: :tb)
+      
+      @matrix.each_part do |tl, tr, bl, br|
         p "==========================="
         tl.pp
         tr.pp
