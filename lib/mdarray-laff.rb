@@ -25,7 +25,7 @@ require 'mdarray'
 
 require_relative '../config'
 
-require_relative 'blis/laff_matrix'
+require_relative 'blis/blis_matrix'
 require_relative 'ruby_interface/base/vecvec'
 
 

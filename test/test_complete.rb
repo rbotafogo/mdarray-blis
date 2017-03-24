@@ -19,8 +19,8 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require_relative 'test_partitions_vec'
-require_relative 'test_partitions_matrix'
+require_relative 'test_simple_partitions'
+require_relative 'test_grid_partitions'
 
-require_relative 'test_laff_vecvec'
-
+require_relative 'test_blis_vecvec'
+require_relative 'test_blis_matvec'

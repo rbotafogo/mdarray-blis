@@ -28,51 +28,59 @@ class MDArray
   # first partition only has two vectors, the other two vectors are empty.
   #------------------------------------------------------------------------------------
 
-  def part_by_four_vecs_lr_tb_first_part(filter: 0b1111, empty: EmptyArray.new(nil))
+  def part_by_five_vecs_lr_tb_first(filter: 0b11111)
 
     part = []
 
-    # first vector: top vector is empty
-    ((filter & 0b1000) != 0) && part << empty
-
-    # second vector: bottom vector
-    ((filter & 0b0100) != 0) &&
+    # first vector: single element where the partition is happening
+    ((filter & 0b10000) != 0) &&
+      part << region(origin: [0, 0], size: [1, 1], stride: [1, 1])
+    
+    # second vector: top vector is empty
+    ((filter & 0b01000) != 0) && part << @empty
+    
+    # third vector: bottom vector
+    ((filter & 0b00100) != 0) &&
       part << region(origin: [1, 0], size: [shape[0] - 1, 1], stride: [1, 1])
-
-    # third vector: left vector is empty
-    ((filter & 0b0010) != 0) && part << empty
-
-    # fourth vector: right vector
-    ((filter & 0b0001) != 0) &&
+    
+    # fourth vector: left vector is empty
+    ((filter & 0b00010) != 0) && part << @empty
+    
+    # fifth vector: right vector
+    ((filter & 0b00001) != 0) &&
       part << region(origin: [0, 1], size: [1, shape[1] - 1], stride: [1, 1])
-
+    
     part
-
+    
   end
-
+  
   #------------------------------------------------------------------------------------
   #
   #------------------------------------------------------------------------------------
-
-  def part_by_four_vecs_lr_tb(part_size:, filter: 0b1111)
+  
+  def part_by_five_vecs_lr_tb(part_size:, filter: 0b11111)
 
     part = []
 
-    # first vector: top vector
-    ((filter & 0b1000) != 0) &&
+    # first vector: single element where the partition is happening
+    ((filter & 0b10000) != 0) &&
+      part << region(origin: [part_size, part_size], size: [1, 1], stride: [1, 1])
+
+    # second vector: top vector
+    ((filter & 0b01000) != 0) &&
       part << region(origin: [0, part_size], size: [part_size, 1], stride: [1, 1])
 
-    # second vector: bottom vector
-    ((filter & 0b0100) != 0) &&
+    # third vector: bottom vector
+    ((filter & 0b00100) != 0) &&
       part << region(origin: [part_size+1, part_size], size: [shape[0] - (part_size+1), 1],
                      stride: [1, 1])
 
-    # third vector: left vector
-    ((filter & 0b0010) != 0) && 
+    # fourth vector: left vector
+    ((filter & 0b00010) != 0) && 
       part << region(origin: [part_size, 0], size: [1, part_size], stride: [1, 1])
     
-    # fourth vector: right vector
-    ((filter & 0b0001) != 0) &&
+    # fifth vector: right vector
+    ((filter & 0b00001) != 0) &&
       part << region(origin: [part_size, part_size+1], size: [1, shape[1] - (part_size+1)],
                      stride: [1, 1])
 
@@ -84,24 +92,27 @@ class MDArray
   # Returns four specific vectors from a Matrix based on an element of the Matrix.
   #------------------------------------------------------------------------------------
 
-  def part_by_four_vecs_lr_tb_last_part(filter: 0b1111, empty: EmptyArray.new(nil))
+  def part_by_five_vecs_lr_tb_last(part_size:, filter: 0b11111)
 
     part = []
-    part_size ||= shape.min - 1
 
-    # first vector: top vector
-    ((filter & 0b1000) != 0) &&
+    # first vector: single element where the partition is happening
+    ((filter & 0b10000) != 0) &&
+      part << region(origin: [part_size, part_size], size: [1, 1], stride: [1, 1])
+
+    # second vector: top vector
+    ((filter & 0b01000) != 0) &&
       part << region(origin: [0, part_size], size: [part_size, 1], stride: [1, 1])
 
-    # second vector: bottom vector is empty
-    ((filter & 0b0100) != 0) && part << empty
+    # third vector: bottom vector is empty
+    ((filter & 0b00100) != 0) && part << @empty
 
-    # third vector: left vector
-    ((filter & 0b0010) != 0) && 
+    # fourth vector: left vector
+    ((filter & 0b00010) != 0) && 
       part << region(origin: [part_size, 0], size: [1, part_size], stride: [1, 1])
     
-    # fourth vector: right vector is empty
-    ((filter & 0b0001) != 0) && part << empty
+    # fifth vector: right vector is empty
+    ((filter & 0b00001) != 0) && part << @empty
 
     part
 

@@ -22,77 +22,7 @@
 ##########################################################################################
 
 
-module LaffMatrix
-
-  attr_reader :pfunction
-  attr_reader :first_part
-  attr_reader :last_part
-
-  attr_reader :part_to
-  attr_reader :all_values
-
-  #------------------------------------------------------------------------------------
-  #
-  #------------------------------------------------------------------------------------
-
-  def part_by(type, row_dir: nil, column_dir: nil, filter: false)
-
-    raise "Partition type unknown #{type}" if ((type != :column) && (type != :row) &&
-                                               (type != :four_vecs) && (type != :quadrants))
-    raise "Wrong row direction #{row_dir}" if (row_dir != nil && row_dir != :lr &&
-                                               row_dir != :rl)
-    raise "Wrong column direction #{column_dir}" if (column_dir != nil &&
-                                                     column_dir != :tb &&
-                                                     column_dir != :bt)
-    case type
-    when :column
-      raise "Direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
-                                                                           row_dir != :rl))
-      direction = row_dir.to_s
-      @part_to = shape[1]
-      @filter = filter || 0b11
-    when :row
-      raise "Direction should be either :tb or :bt" if (column_dir == nil ||
-                                                        (column_dir != :tb &&
-                                                         column_dir != :bt))
-      direction = column_dir.to_s
-      @part_to = shape[0]
-      @filter = filter || 0b11
-    when :four_vecs || :quadrants
-      raise "Row direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
-                                                                               row_dir != :rl))
-      raise "Column direction should be either :tb or :bt" if (column_dir == nil ||
-                                                               (column_dir != :tb &&
-                                                                column_dir != :bt))
-      direction = "#{row_dir.to_s}_#{column_dir.to_s}"
-      @part_to = shape.min - 1
-      @filter = filter || 0b1111
-    end
-
-    @pfunction = method("part_by_#{type.to_s }_#{direction}".to_sym)
-    
-  end
-  
-  #------------------------------------------------------------------------------------
-  # Gets every partition of a vector or matrix from 1 to n - 1
-  #------------------------------------------------------------------------------------
-
-  def each_part
-
-    return enum_for(:each_part) unless block_given? # Sparkling magic!      
-
-    (0..@part_to - 1).each do |part_size|
-      yield *(@pfunction.call(part_size: part_size, filter: @filter))
-    end
-    
-  end
-  
-end
-
-
-
-class MDArray
-  include LaffMatrix
+module BlisMatrix
 
   #====================================================================================
   #
@@ -108,6 +38,14 @@ class MDArray
 
     def initialize(default)
       @default = default
+    end
+    
+    #------------------------------------------------------------------------------------
+    #
+    #------------------------------------------------------------------------------------
+
+    def empty?
+      true
     end
     
     #------------------------------------------------------------------------------------
@@ -152,10 +90,107 @@ class MDArray
     
   end
 
+  #====================================================================================
+  #
+  #====================================================================================
+
+  attr_reader :pfunction
+  attr_reader :first_part
+  attr_reader :last_part
+
+  attr_reader :part_to
+  attr_reader :all_values
+
+  #------------------------------------------------------------------------------------
+  #
+  #------------------------------------------------------------------------------------
+  
+  def empty?
+    false
+  end
+  
+  #------------------------------------------------------------------------------------
+  #
+  #------------------------------------------------------------------------------------
+
+  def part_by(type, row_dir: nil, column_dir: nil, filter: false,
+              empty: EmptyArray.new(nil))
+
+    raise "Partition type unknown #{type}" if ((type != :column) && (type != :row) &&
+                                               (type != :five_vecs) && (type != :quadrants))
+    raise "Wrong row direction #{row_dir}" if (row_dir != nil && row_dir != :lr &&
+                                               row_dir != :rl)
+    raise "Wrong column direction #{column_dir}" if (column_dir != nil &&
+                                                     column_dir != :tb &&
+                                                     column_dir != :bt)
+    case type
+    when :column
+      raise "Direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
+                                                                           row_dir != :rl))
+      direction = row_dir.to_s
+      @part_to = shape[1]
+      @filter = filter || 0b11
+      @empty = empty
+    when :row
+      raise "Direction should be either :tb or :bt" if (column_dir == nil ||
+                                                        (column_dir != :tb &&
+                                                         column_dir != :bt))
+      direction = column_dir.to_s
+      @part_to = shape[0]
+      @filter = filter || 0b11
+      @empty = empty
+    when :five_vecs || :quadrants
+      raise "Row direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
+                                                                               row_dir != :rl))
+      raise "Column direction should be either :tb or :bt" if (column_dir == nil ||
+                                                               (column_dir != :tb &&
+                                                                column_dir != :bt))
+      direction = "#{row_dir.to_s}_#{column_dir.to_s}"
+      @part_to = shape.min - 1
+      @filter = filter || 0b1111
+      @empty = empty
+      @first_part = method("part_by_#{type.to_s }_#{direction}_first".to_sym)
+    end
+
+    @pfunction = method("part_by_#{type.to_s }_#{direction}".to_sym)
+    @last_part = method("part_by_#{type.to_s }_#{direction}_last".to_sym)
+    
+  end
+  
+  #------------------------------------------------------------------------------------
+  # Gets every partition of a vector or matrix from 1 to n - 1
+  #------------------------------------------------------------------------------------
+
+  def each_part
+
+    return enum_for(:each_part) unless block_given? # Sparkling magic!      
+
+    # Executes the first partition
+    (@first_part.nil?)? (yield *(@pfunction.call(part_size: 0, filter: @filter))) :
+      (yield *(@first_part.call(filter: @filter)))
+
+    # Executes all partitions but the last
+    (1..@part_to - 2).each do |part_size|
+      yield *(@pfunction.call(part_size: part_size, filter: @filter))
+    end
+
+    # Executes last partition
+    yield *(@last_part.call(part_size: @part_to - 1, filter: @filter))
+
+  end
+  
 end
 
-require_relative 'util/vec_partitions'
-require_relative 'util/matrix_partitions'
+
+
+class MDArray
+  include BlisMatrix
+
+
+end
+
+require_relative 'util/simple_partitions'
+require_relative 'util/grid_partitions'
 require_relative 'base/vecvec'
 require_relative 'base/matvec'
 
