@@ -31,6 +31,7 @@ module BlisMatrix
   class EmptyArray
     
     attr_reader :default
+    attr_reader :nc_array
     
     #------------------------------------------------------------------------------------
     #
@@ -38,6 +39,7 @@ module BlisMatrix
 
     def initialize(default)
       @default = default
+      @nc_array = Java::UcarMa2.ArrayDouble::D0.new
     end
     
     #------------------------------------------------------------------------------------
@@ -46,22 +48,6 @@ module BlisMatrix
 
     def empty?
       true
-    end
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def rank
-      0
-    end
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def size
-      0
     end
     
     #------------------------------------------------------------------------------------
@@ -80,14 +66,6 @@ module BlisMatrix
       @default
     end
     
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def +(other)
-      other
-    end
-    
   end
 
   #====================================================================================
@@ -95,11 +73,8 @@ module BlisMatrix
   #====================================================================================
 
   attr_reader :pfunction
-  attr_reader :first_part
-  attr_reader :last_part
-
   attr_reader :part_to
-  attr_reader :all_values
+  attr_accessor :empty
 
   #------------------------------------------------------------------------------------
   #
@@ -113,16 +88,18 @@ module BlisMatrix
   #
   #------------------------------------------------------------------------------------
 
-  def part_by(type, row_dir: nil, column_dir: nil, filter: false,
-              empty: EmptyArray.new(nil))
+  def part_by(type, row_dir: nil, column_dir: nil, filter: false)
 
     raise "Partition type unknown #{type}" if ((type != :column) && (type != :row) &&
-                                               (type != :five_vecs) && (type != :quadrants))
+                                               (type != :six) && (type != :quadrants) &&
+                                               (type != :three_columns))
     raise "Wrong row direction #{row_dir}" if (row_dir != nil && row_dir != :lr &&
                                                row_dir != :rl)
     raise "Wrong column direction #{column_dir}" if (column_dir != nil &&
                                                      column_dir != :tb &&
                                                      column_dir != :bt)
+    @empty = MDArray.double(nil)
+    
     case type
     when :column
       raise "Direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
@@ -130,7 +107,6 @@ module BlisMatrix
       direction = row_dir.to_s
       @part_to = shape[1]
       @filter = filter || 0b11
-      @empty = empty
     when :row
       raise "Direction should be either :tb or :bt" if (column_dir == nil ||
                                                         (column_dir != :tb &&
@@ -138,22 +114,35 @@ module BlisMatrix
       direction = column_dir.to_s
       @part_to = shape[0]
       @filter = filter || 0b11
-      @empty = empty
-    when :five_vecs || :quadrants
+    when :three_columns
+      raise "Column direction should be either :tb or :bt" if (column_dir == nil ||
+                                                               (column_dir != :tb &&
+                                                                column_dir != :bt))
+      direction = column_dir.to_s
+      @part_to = shape[0]
+      @filter = filter || 0b111111
+    when :quadrants
       raise "Row direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
                                                                                row_dir != :rl))
       raise "Column direction should be either :tb or :bt" if (column_dir == nil ||
                                                                (column_dir != :tb &&
                                                                 column_dir != :bt))
       direction = "#{row_dir.to_s}_#{column_dir.to_s}"
-      @part_to = shape.min - 1
       @filter = filter || 0b1111
-      @empty = empty
-      @first_part = method("part_by_#{type.to_s }_#{direction}_first".to_sym)
+    when :six
+      raise "Row direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
+                                                                               row_dir != :rl))
+      raise "Column direction should be either :tb or :bt" if (column_dir == nil ||
+                                                               (column_dir != :tb &&
+                                                                column_dir != :bt))
+      direction = "#{row_dir.to_s}_#{column_dir.to_s}"
+      @filter = filter || 0b111111
+      @part_to = shape.min
     end
 
     @pfunction = method("part_by_#{type.to_s }_#{direction}".to_sym)
-    @last_part = method("part_by_#{type.to_s }_#{direction}_last".to_sym)
+
+    enum_for(:each_part)
     
   end
   
@@ -165,17 +154,10 @@ module BlisMatrix
 
     return enum_for(:each_part) unless block_given? # Sparkling magic!      
 
-    # Executes the first partition
-    (@first_part.nil?)? (yield *(@pfunction.call(part_size: 0, filter: @filter))) :
-      (yield *(@first_part.call(filter: @filter)))
-
-    # Executes all partitions but the last
-    (1..@part_to - 2).each do |part_size|
+    # Executes all partitions
+    (0..@part_to - 1).each do |part_size|
       yield *(@pfunction.call(part_size: part_size, filter: @filter))
     end
-
-    # Executes last partition
-    yield *(@last_part.call(part_size: @part_to - 1, filter: @filter))
 
   end
   
@@ -186,11 +168,10 @@ end
 class MDArray
   include BlisMatrix
 
-
 end
 
 require_relative 'util/simple_partitions'
-require_relative 'util/grid_partitions'
+require_relative 'util/generalized_partitions'
 require_relative 'base/vecvec'
 require_relative 'base/matvec'
 
@@ -210,4 +191,25 @@ require_relative 'base/matvec'
     end
     
   end
+
+
+    when :column3
+      raise "Row direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
+                                                                               row_dir != :rl))
+      direction = row_dir.to_s
+      @part_to = shape[1]
+      @filter = filter || 0b111
+      @empty = empty
+      @first_part = method("part_by_#{type.to_s }_#{direction}_first".to_sym)
+    end
+    when :row3
+      raise "Direction should be either :tb or :bt" if (column_dir == nil ||
+                                                        (column_dir != :tb &&
+                                                         column_dir != :bt))
+      direction = column_dir.to_s
+      @part_to = shape[0]
+      @filter = filter || 0b111
+      @empty = empty
+      @first_part = method("part_by_#{type.to_s }_#{direction}_first".to_sym)
+
 =end

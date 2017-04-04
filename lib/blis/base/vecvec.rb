@@ -24,7 +24,8 @@
 class Blis
   
   #------------------------------------------------------------------------------------
-  # Does axpy operation between vectors
+  # Does axpy operation between vectors.
+  # vec2 = alfa * vec1 + vec2
   #------------------------------------------------------------------------------------
 
   def self.axpyv(alfa, vec1, vec2)
@@ -34,7 +35,7 @@ class Blis
     i2 = MDArray::IteratorFastDouble.new(vec2)
 
     while(i1.has_next?)
-      i1.set_current(alfa * i1.get_next + i2.get_next)
+      i2.set_current(alfa * i1.get_next + i2.get_next)
     end
     
   end
@@ -84,10 +85,10 @@ class Blis
   end
 
   #------------------------------------------------------------------------------------
-  # Performs a dotv operation between a row vector and a column vector.  No error
-  # checking is done.
-  # @param r_vec [MDArray] an MDArray configured as a row vector: dimension [x, 1]
-  # @param c_vec [MDArray] an MDArray configured as a column vector: dimension [1, x]
+  # Performs a dotv operation between two vectors.  No error checking is done. Vectors
+  # can be row or column vectors that no error will be issued.
+  # @param r_vec [MDArray] an MDArray configured as a vector: dimension [x, 1] or [1, x]
+  # @param c_vec [MDArray] an MDArray configured as a vector: dimension [1, x] or [x, 1]
   # @return number [Numeric] a numeric value representing the dot product between
   # r_vec and c_vec
   #------------------------------------------------------------------------------------

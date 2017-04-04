@@ -43,6 +43,24 @@ class BlisMatrixTest < Test::Unit::TestCase
                                 5, 6, 7, 8,
                                 9, 10,11, 12,
                                 13, 14, 15, 16])
+
+      @m2 = MDArray.double([5, 5],
+                           [1, -1, 3, 2, -2,
+                            2, -2, 1, 0, -1,
+                            0, -4, 3, 2, 1,
+                            3, 1, -2, 1, 0,
+                            -1, 2, 1, -1, -2])
+      
+      @vec = MDArray.double([5, 1], [-1, 0, 2, -1, 1])
+
+      @u = MDArray.double([5, 5],
+                          [-1, 2, 4, 1, 0,
+                           0, 0, -1, -2, 1,
+                           0, 0, 3, 1, 2,
+                           0, 0, 0, 4, 3,
+                           0, 0, 0, 0, 2])
+
+      @uvec = MDArray.double([5, 1], [1, 2, 3, 4, 5])
       
     end
 
@@ -50,6 +68,90 @@ class BlisMatrixTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
+    should "multiply matrix by vector" do
+
+      yvec = MDArray.double([5, 1])
+      zvec = MDArray.double([5, 1])
+      wvec = MDArray.double([5, 1])
+      kvec = MDArray.double([5, 1])
+
+      Blis.gemv_6part_dot(1, 1, yvec, @m2, @vec)
+      yvec.pp
+
+      Blis.gemv_dot(1, 1, zvec, @m2, @vec)
+      zvec.pp
+
+      Blis.gemv_axpy(1, 1, kvec, @m2, @vec)
+      kvec.pp
+
+      Blis.gemv_6part_axpy(1, 1, wvec, @m2, @vec)
+      wvec.pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "multiply transpose matrix by vector" do
+
+      zvec = MDArray.double([5, 1])
+      kvec = MDArray.double([5, 1])
+
+      Blis.getmv_dot(1, 1, zvec, @m2, @vec)
+      zvec.pp
+
+      Blis.getmv_axpy(1, 1, kvec, @m2, @vec)
+      kvec.pp
+      
+    end
+    
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "multiply upper triangular matrix by vector" do
+
+      yvec = MDArray.double([5, 1])
+      zvec = MDArray.double([5, 1])
+
+      p "upper triangular matrix multiply"
+      Blis.gemv_6part_dot(1, 1, yvec, @u, @uvec)
+      yvec.pp
+      
+      Blis.geutriangmv_6part_dot(1, 1, zvec, @u, @uvec)
+      zvec.pp
+
+    end
+    
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+=begin
+    should "part generalized" do
+
+      @m2.empty = MDArray::EmptyArray.new(0)
+      part = @m2.part_by_six_lr_tb(rowi: 4, columni: 4)
+      
+      part[0].pp
+      part[1].pp
+      part[2].pp
+      part[3].pp
+      part[4].pp
+      part[5].pp
+
+      vpart = @vec.part_by_three_columns_tb(rowi: 2)
+      vpart[0].pp
+      vpart[1].pp
+      vpart[2].pp
+      
+      
+    end
+=end    
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+=begin
     should "slice an array returning 5 vectors left/right, top/bottom" do
 
       @matrix.pp
@@ -108,6 +210,34 @@ class BlisMatrixTest < Test::Unit::TestCase
 
     end
     
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "implement dot product with different algo" do
+
+      @m2.part_by(:five_vecs, row_dir: :lr, column_dir: :tb, filter: 0b10011)
+      @vec.part_by(:row, column_dir: :tb)
+
+      mpart = @m2.each_part
+      vpart = @vec.each_part
+      
+      loop do
+        p "======= elements for multiply======"
+        melmt, left, right = mpart.next
+        top, bottom = vpart.next
+        p "first"
+        melmt.pp
+        top.pp
+        p "second"
+        left.pp
+        right.pp
+        bottom.pp
+      end
+
+      
+    end
+=end    
 =begin
 
     #--------------------------------------------------------------------------------------

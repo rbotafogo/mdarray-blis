@@ -30,11 +30,8 @@ class Blis
 
   def self.gemv_dot(alfa, beta, y_vec, matrix, x_vec)
 
-    matrix.part_by(:row, column_dir: :tb, filter: 0b10)
-    y_vec.part_by(:row, column_dir: :tb, filter: 0b10)
-
-    mpart = matrix.each_part
-    ypart = y_vec.each_part
+    mpart = matrix.part_by(:row, column_dir: :tb, filter: 0b10)
+    ypart = y_vec.part_by(:row, column_dir: :tb, filter: 0b10)
 
     loop do
       top = mpart.next
@@ -43,5 +40,135 @@ class Blis
     end
 
   end
+
+  #------------------------------------------------------------------------------------
+  # Generalized transpose matrix vector multiply using dotv
+  # y := beta*y + alfa*Ax
+  #------------------------------------------------------------------------------------
+
+  def self.getmv_dot(alfa, beta, y_vec, matrix, x_vec)
+    
+    mpart = matrix.part_by(:column, row_dir: :lr, filter: 0b10)
+    ypart = y_vec.part_by(:row, column_dir: :tb, filter: 0b10)
+
+    loop do
+      left = mpart.next
+      elmt = ypart.next
+      elmt[0, 0] = beta * elmt[0, 0] + alfa * Blis.dotv(left, x_vec)
+    end
+
+  end
   
+  #------------------------------------------------------------------------------------
+  # Generalized matrix vector multiply using axpy
+  # y := beta*y + alfa*Ax
+  #------------------------------------------------------------------------------------
+
+  def self.gemv_axpy(alfa, beta, y_vec, matrix, x_vec)
+
+    mpart = matrix.part_by(:column, row_dir: :lr, filter: 0b10)
+    xpart = x_vec.part_by(:row, column_dir: :tb, filter: 0b10)
+
+    loop do
+      left = mpart.next
+      xscalar = xpart.next
+      Blis.axpyv(xscalar[0, 0], left, y_vec)
+    end
+
+  end
+
+  #------------------------------------------------------------------------------------
+  # Generalized transpose matrix vector multiply using axpy
+  # y := beta*y + alfa*Ax
+  #------------------------------------------------------------------------------------
+
+  def self.getmv_axpy(alfa, beta, y_vec, matrix, x_vec)
+
+    mpart = matrix.part_by(:row, column_dir: :tb, filter: 0b10)
+    xpart = x_vec.part_by(:row, column_dir: :tb, filter: 0b10)
+
+    loop do
+      top = mpart.next
+      xscalar = xpart.next
+      Blis.axpyv(xscalar[0, 0], top, y_vec)
+    end
+
+  end
+
+  #------------------------------------------------------------------------------------
+  # Generalized matrix vector multiply using 6 partitioning
+  # y := beta*y + alfa*Ax
+  #------------------------------------------------------------------------------------
+
+  def self.gemv_6part_dot(alfa, beta, y_vec, matrix, x_vec)
+
+    mpart = matrix.part_by(:six, row_dir: :lr, column_dir: :tb, filter: 0b100110)
+    xpart = x_vec.part_by(:three_columns, column_dir: :tb)
+    ypart = y_vec.part_by(:three_columns, column_dir: :tb, filter: 0b100)
+
+    loop do
+      mscalar, mleft, mright = mpart.next
+      xscalar, xtop, xbottom = xpart.next
+      yscalar = ypart.next
+      
+      yscalar[0, 0] = beta * yscalar[0, 0] +
+                      alfa * (Blis.dotv(mleft, xtop) +
+                              mscalar[0, 0] * xscalar[0, 0] +
+                              Blis.dotv(mright, xbottom))
+      
+    end 
+
+  end
+  
+  #------------------------------------------------------------------------------------
+  # Generalized matrix vector multiply using 6 partitioning, based on axpy method
+  # y := beta*y + alfa*Ax
+  #------------------------------------------------------------------------------------
+
+  def self.gemv_6part_axpy(alfa, beta, y_vec, matrix, x_vec)
+
+    mpart = matrix.part_by(:six, row_dir: :lr, column_dir: :tb, filter: 0b111000)
+    xpart = x_vec.part_by(:three_columns, column_dir: :tb, filter: 0b100)
+    ypart = y_vec.part_by(:three_columns, column_dir: :tb)
+
+    loop do
+      mscalar, mtop, mbottom = mpart.next
+      xscalar = xpart.next
+      yscalar, ytop, ybottom = ypart.next
+
+      # ytop = xscalar[0, 0] * mtop + ytop
+      Blis.axpyv(xscalar[0, 0], mtop, ytop)
+
+      yscalar[0, 0] = yscalar[0, 0] + xscalar[0, 0] * mscalar[0, 0]
+
+      # ybottom = xscalar[0, 0] * mbottom + ybottom
+      Blis.axpyv(xscalar[0, 0], mbottom, ybottom)
+      
+    end 
+
+  end
+
+  #------------------------------------------------------------------------------------
+  # Generalized upper triangular matrix vector multiply using 6 partitioning
+  # y := beta*y + alfa*Ax
+  #------------------------------------------------------------------------------------
+
+  def self.geutriangmv_6part_dot(alfa, beta, y_vec, matrix, x_vec)
+
+    mpart = matrix.part_by(:six, row_dir: :lr, column_dir: :tb, filter: 0b100010)
+    xpart = x_vec.part_by(:three_columns, column_dir: :tb)
+    ypart = y_vec.part_by(:three_columns, column_dir: :tb, filter: 0b100)
+
+    loop do
+      mscalar, mright = mpart.next
+      xscalar, xtop, xbottom = xpart.next
+      yscalar = ypart.next
+      
+      yscalar[0, 0] = beta * yscalar[0, 0] +
+                      alfa * (mscalar[0, 0] * xscalar[0, 0] +
+                              Blis.dotv(mright, xbottom))
+    end 
+
+  end
+
 end

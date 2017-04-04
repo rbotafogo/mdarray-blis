@@ -22,10 +22,11 @@
 ##########################################################################################
 
 class MDArray
+
   
   #------------------------------------------------------------------------------------
   # Partitions the matrix by columns from left to right.  Assumes that all parameters
-  # are correct and does not do any error checking.
+  # are correct and does not do any error checking. 
   #------------------------------------------------------------------------------------
   
   def part_by_column_lr(part_size:, filter: 0b11)
@@ -34,35 +35,17 @@ class MDArray
 
     # left part - A single column indexed as part_size with all elements of the column
     # from 0 to shape[0]
-    ((filter & 0b10) > 0) &&
-      part << region(origin: [0, part_size], size: [shape[0], 1], stride: [1, 1])      
+    ((filter & 0b10) != 0) &&
+      part << region(origin: [0, part_size], size: [shape[0], 1], stride: [1, 1])
 
     # right part - All columns from the right of the above column indexed from
     # part_size to shape[1] - part_size
-    ((filter & 0b01) > 0) &&
-      part << region(origin: [0, part_size + 1],
-                     size: [shape[0], shape[1] - part_size - 1],
-                     stride: [1, 1])
-
-    part
+    ((filter & 0b01) != 0) &&
+      part << ((part_size == shape[1] - 1)? @empty : 
+                 region(origin: [0, part_size + 1],
+                        size: [shape[0], shape[1] - 1 - part_size],
+                        stride: [1, 1]))
     
-  end
-
-  #------------------------------------------------------------------------------------
-  #
-  #------------------------------------------------------------------------------------
-
-  def part_by_column_lr_last(part_size:, filter: 0b11)
-
-    part = []
-    
-    # left part - A single column indexed as part_size with all elements of the column
-    # from 0 to shape[0]
-    ((filter & 0b10) > 0) &&
-      part << region(origin: [0, part_size], size: [shape[0], 1], stride: [1, 1])      
-
-    ((filter & 0b01) != 0) && part << @empty
-
     part
     
   end
@@ -75,38 +58,18 @@ class MDArray
   def part_by_column_rl(part_size:, filter: 0b11)
 
     part = []
-
+    
     # left part - All columns to the left of the column indexed as shape[1] - part_size
     ((filter & 0b10) != 0) &&
-      part << region(origin: [0, 0], size: [shape[0], shape[1] - part_size - 1],
-                     stride: [1, 1])
+      part << ((part_size == shape[1] - 1)? @empty :
+                 region(origin: [0, 0], size: [shape[0], shape[1] - 1 - part_size],
+                        stride: [1, 1]))
     
     # right part - A single column indexed as shape[1] - part_size 
     ((filter & 0b01) != 0) &&
-      part << region(origin: [0, shape[1] - part_size - 1], size: [shape[0], 1],
+      part << region(origin: [0, shape[1] - 1 - part_size], size: [shape[0], 1],
                      stride: [1, 1])
     
-    part
-
-  end
-
-  #------------------------------------------------------------------------------------
-  #
-  #------------------------------------------------------------------------------------
-
-  def part_by_column_rl_last(part_size:, filter: 0b11)
-
-    part = []
-    
-    # left part - A single column indexed as part_size with all elements of the column
-    # from 0 to shape[0]
-    ((filter & 0b10) != 0) && part << @empty
-    
-    # right part - A single column indexed as shape[1] - part_size 
-    ((filter & 0b01) != 0) &&
-      part << region(origin: [0, shape[1] - part_size - 1], size: [shape[0], 1],
-                     stride: [1, 1])
-
     part
 
   end
@@ -127,29 +90,11 @@ class MDArray
 
     # bottom part - All remaining rows bellow the row indexed as part_size
     ((filter & 0b01) != 0) &&
-      part << region(origin: [part_size + 1, 0],
-                     size: [shape[0] - part_size - 1, shape[1]],
-                     stride: [1, 1])
+      part << ((part_size == shape[0] - 1)? @empty : 
+                 region(origin: [part_size + 1, 0],
+                        size: [shape[0] - 1 - part_size, shape[1]],
+                        stride: [1, 1]))
     
-    part
-    
-  end
-
-  #------------------------------------------------------------------------------------
-  #
-  #------------------------------------------------------------------------------------
-
-  def part_by_row_tb_last(part_size:, filter: 0b11)
-
-    part = []
-
-    # top part - A single row indexed as part_size, with all the elements of the row
-    # indexed from 0 to shape[1]
-    ((filter & 0b10) != 0) &&
-      part << region(origin: [part_size, 0], size: [1, shape[1]], stride: [1, 1])
-
-    ((filter & 0b01) != 0) && part << @empty
-
     part
     
   end
@@ -165,37 +110,17 @@ class MDArray
 
     # top part - All rows from the top to row indexed as part_size
     ((filter & 0b10) != 0) &&
-      part << region(origin: [0, 0], size: [shape[0] - part_size - 1, shape[1]],
-                     stride: [1, 1])
-
+      part << ((part_size == shape[0] - 1)? @empty : 
+                 region(origin: [0, 0], size: [shape[0] - 1 - part_size, shape[1]],
+                        stride: [1, 1]))
+    
     # bottom part - A single row indexed as part_size
     ((filter & 0b01) != 0) &&
-      part << region(origin: [shape[0] - part_size - 1, 0], size: [1, shape[1]],
+      part << region(origin: [shape[0] - 1 - part_size, 0], size: [1, shape[1]],
                      stride: [1, 1])
 
     part
     
-  end
-
-  #------------------------------------------------------------------------------------
-  #
-  #------------------------------------------------------------------------------------
-
-  def part_by_row_bt_last(part_size:, filter: 0b11)
-
-    part = []
-
-    # left part - A single column indexed as part_size with all elements of the column
-    # from 0 to shape[0]
-    ((filter & 0b10) != 0) && part << @empty
-    
-    # bottom part - A single row indexed as part_size
-    ((filter & 0b01) != 0) &&
-      part << region(origin: [shape[0] - part_size - 1, 0], size: [1, shape[1]],
-                     stride: [1, 1])
-
-    part
-
   end
 
 end
