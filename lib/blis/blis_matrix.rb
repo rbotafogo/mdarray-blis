@@ -27,50 +27,6 @@ module BlisMatrix
   #====================================================================================
   #
   #====================================================================================
-  
-  class EmptyArray
-    
-    attr_reader :default
-    attr_reader :nc_array
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def initialize(default)
-      @default = default
-      @nc_array = Java::UcarMa2.ArrayDouble::D0.new
-    end
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def empty?
-      true
-    end
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def pp
-      ""
-    end
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def [](*index)
-      @default
-    end
-    
-  end
-
-  #====================================================================================
-  #
-  #====================================================================================
 
   attr_reader :pfunction
   attr_reader :part_to
@@ -79,17 +35,19 @@ module BlisMatrix
   #------------------------------------------------------------------------------------
   #
   #------------------------------------------------------------------------------------
-  
-  def empty?
-    false
-  end
-  
-  #------------------------------------------------------------------------------------
-  #
-  #------------------------------------------------------------------------------------
 
   def part_by(type, row_dir: nil, column_dir: nil, filter: false)
 
+    # an array can only be partitioned in one way.  If we call part_by on one array and
+    # then pass this array to another method that needs to part the array we need to
+    # duplicate the array.
+    if (@pfunction != nil)
+      duplicate = self.dup
+      duplicate.set_duplicate
+      duplicate.part_by(type, row_dir: row_dir, column_dir: column_dir, filter: filter)
+      return duplicate.enum_for(:each_part)
+    end
+    
     raise "Partition type unknown #{type}" if ((type != :column) && (type != :row) &&
                                                (type != :six) && (type != :quadrants) &&
                                                (type != :three_columns))
@@ -160,9 +118,14 @@ module BlisMatrix
     end
 
   end
+
+  # private
+
+  def set_duplicate
+    @pfunction = nil
+  end
   
 end
-
 
 
 class MDArray
@@ -174,6 +137,7 @@ require_relative 'util/simple_partitions'
 require_relative 'util/generalized_partitions'
 require_relative 'base/vecvec'
 require_relative 'base/matvec'
+require_relative 'base/matmat'
 
 
 =begin  
@@ -212,4 +176,50 @@ require_relative 'base/matvec'
       @empty = empty
       @first_part = method("part_by_#{type.to_s }_#{direction}_first".to_sym)
 
+=end
+
+=begin  
+  #====================================================================================
+  #
+  #====================================================================================
+  
+  class EmptyArray
+    
+    attr_reader :default
+    attr_reader :nc_array
+    
+    #------------------------------------------------------------------------------------
+    #
+    #------------------------------------------------------------------------------------
+
+    def initialize(default)
+      @default = default
+      @nc_array = Java::UcarMa2.ArrayDouble::D0.new
+    end
+    
+    #------------------------------------------------------------------------------------
+    #
+    #------------------------------------------------------------------------------------
+
+    def empty?
+      true
+    end
+    
+    #------------------------------------------------------------------------------------
+    #
+    #------------------------------------------------------------------------------------
+
+    def pp
+      ""
+    end
+    
+    #------------------------------------------------------------------------------------
+    #
+    #------------------------------------------------------------------------------------
+
+    def [](*index)
+      @default
+    end
+    
+  end
 =end

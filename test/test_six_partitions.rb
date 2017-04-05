@@ -87,6 +87,16 @@ class BlisMatrixTest < Test::Unit::TestCase
       Blis.gemv_6part_axpy(1, 1, wvec, @m2, @vec)
       wvec.pp
 
+      p "square a matrix"
+      t = MDArray.double([5, 5])
+      Blis.gemm_dot(t, @m2, @m2)
+      t.pp
+
+      mt = MDMatrix.from_mdarray(@m2)
+      mt.print
+      res = mt.mult(mt)
+      res.print 
+      
     end
 
     #--------------------------------------------------------------------------------------
