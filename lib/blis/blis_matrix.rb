@@ -135,91 +135,15 @@ end
 
 require_relative 'util/simple_partitions'
 require_relative 'util/generalized_partitions'
+
+require_relative 'base/level-1v'
+require_relative 'base/level-1d'
+require_relative 'base/level-1m'
+require_relative 'base/level-1f'
+require_relative 'base/level-2'
+require_relative 'base/level-3'
+
+
 require_relative 'base/vecvec'
 require_relative 'base/matvec'
 require_relative 'base/matmat'
-
-
-=begin  
-  #------------------------------------------------------------------------------------
-  # Partitions two arrays simultaneously.  Use 
-  #------------------------------------------------------------------------------------
-
-  def part_synchronized(other, filter1: @all_values, filter2: @all_values)
-
-    (1..@part_to - 1).each do |part_size|
-      part1 = @pfunction.call(part_size: part_size, filter: filter1)
-      part2 = other.pfunction.call(part_size: part_size, filter: filter2)
-      yield *part1, *part2
-      
-    end
-    
-  end
-
-
-    when :column3
-      raise "Row direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
-                                                                               row_dir != :rl))
-      direction = row_dir.to_s
-      @part_to = shape[1]
-      @filter = filter || 0b111
-      @empty = empty
-      @first_part = method("part_by_#{type.to_s }_#{direction}_first".to_sym)
-    end
-    when :row3
-      raise "Direction should be either :tb or :bt" if (column_dir == nil ||
-                                                        (column_dir != :tb &&
-                                                         column_dir != :bt))
-      direction = column_dir.to_s
-      @part_to = shape[0]
-      @filter = filter || 0b111
-      @empty = empty
-      @first_part = method("part_by_#{type.to_s }_#{direction}_first".to_sym)
-
-=end
-
-=begin  
-  #====================================================================================
-  #
-  #====================================================================================
-  
-  class EmptyArray
-    
-    attr_reader :default
-    attr_reader :nc_array
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def initialize(default)
-      @default = default
-      @nc_array = Java::UcarMa2.ArrayDouble::D0.new
-    end
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def empty?
-      true
-    end
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def pp
-      ""
-    end
-    
-    #------------------------------------------------------------------------------------
-    #
-    #------------------------------------------------------------------------------------
-
-    def [](*index)
-      @default
-    end
-    
-  end
-=end
