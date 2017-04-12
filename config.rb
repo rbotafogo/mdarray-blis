@@ -40,7 +40,7 @@ end
 # Set the project directories
 #---------------------------------------------------------------------------------------
 
-class Laff
+class Blis
 
   #-------------------------------------------------------------------------------------
   # Instance variables with information about directories and files used
@@ -52,14 +52,14 @@ class Laff
     attr_reader :home_dir
   end
 
-  @project_dir = Laff.home_dir + "/.."
-  @doc_dir = Laff.home_dir + "/doc"
-  @lib_dir = Laff.home_dir + "/lib"
-  @src_dir = Laff.home_dir + "/src"
-  @target_dir = Laff.home_dir + "/target"
-  @test_dir = Laff.home_dir + "/test"
-  @vendor_dir = Laff.home_dir + "/vendor"
-  @js_dir = Laff.home_dir + "/node_modules"
+  @project_dir = Blis.home_dir + "/.."
+  @doc_dir = Blis.home_dir + "/doc"
+  @lib_dir = Blis.home_dir + "/lib"
+  @src_dir = Blis.home_dir + "/src"
+  @target_dir = Blis.home_dir + "/target"
+  @test_dir = Blis.home_dir + "/test"
+  @vendor_dir = Blis.home_dir + "/vendor"
+  @js_dir = Blis.home_dir + "/node_modules"
 
   class << self
     attr_reader :project_dir
@@ -71,13 +71,13 @@ class Laff
     attr_reader :vendor_dir
   end
 
-  @build_dir = Laff.src_dir + "/build"
+  @build_dir = Blis.src_dir + "/build"
 
   class << self
     attr_reader :build_dir
   end
 
-  @classes_dir = Laff.build_dir + "/classes"
+  @classes_dir = Blis.build_dir + "/classes"
 
   class << self
     attr_reader :classes_dir
@@ -155,7 +155,7 @@ if $COVERAGE == 'true'
   
   SimpleCov.start do
     @filters = []
-    add_group "Laff"
+    add_group "Blis"
   end
   
 end

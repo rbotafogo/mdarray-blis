@@ -22,6 +22,25 @@
 ##########################################################################################
 
 class Blis
+
+  #------------------------------------------------------------------------------------
+  # vec1 := vec1 + conjx(vec2), where vec1 and vec2 are vectors of length m.
+  #------------------------------------------------------------------------------------
+
+  def self.addv(vec1, vec2)
+
+  end
+
+  #----------------------------------------------------------------------------------------
+  # Find the element of vector x which contains the maximum absolute value. The index
+  # of the element found is stored to index.
+  # Note: This function attempts to mimic the algorithm for finding the element with the
+  # maximum absolute value in the netlib BLAS routines i?amax().  
+  #----------------------------------------------------------------------------------------
+
+  def self.amaxv(vec)
+
+  end
   
   #------------------------------------------------------------------------------------
   # Does axpy operation between vectors.
@@ -37,32 +56,6 @@ class Blis
     while(i1.has_next?)
       i2.set_current(alfa * i1.get_next + i2.get_next)
     end
-    
-  end
-
-  #------------------------------------------------------------------------------------
-  # Does axpy operation between vectors non-destructively.  This is not part (I think)
-  # of the blis framework
-  #------------------------------------------------------------------------------------
-
-  def self.axpy2v(alfa, vec1, vec2)
-
-    # create a new vector to store the result, with the proper shape and fill it
-    # with 0 initially
-    # axpy = MDArray.init_with(:double, vec1.shape, 0)
-    # By default, every array is filled with 0, so there is no need to explicitly
-    # initialize it as above
-    axpy = MDArray.double(vec1.shape)
-
-    # iterator fast will go through every element of the arrays in canonical order
-    itf = MDArray::IteratorFastDouble.new(axpy)
-    i1 = MDArray::IteratorFastDouble.new(vec1)
-    i2 = MDArray::IteratorFastDouble.new(vec2)
-
-    while(i1.has_next?)
-      itf.set_next(alfa * i1.get_next + i2.get_next)
-    end
-    axpy
     
   end
 
@@ -107,6 +100,14 @@ class Blis
   end
 
   #------------------------------------------------------------------------------------
+  # rho := beta * rho + alpha * conjx(x)^T * conjy(y)
+  #------------------------------------------------------------------------------------
+
+  def self.dotxv(vec1, vec2)
+
+  end
+
+  #------------------------------------------------------------------------------------
   #
   #------------------------------------------------------------------------------------
 
@@ -124,13 +125,18 @@ class Blis
   #
   #------------------------------------------------------------------------------------
 
-  def self.setv(vec, alfa)
+  def self.scal2v(alfa, vec)
 
+    scal2v = MDArray.double(vec.shape)
+
+    # iterator fast will go through every element of the arrays in canonical order
     iterator = MDArray::IteratorFastDouble.new(vec)
-    
+    i2 = MDArray::IteratorFastDouble.new(scal2v)
+
     while(iterator.has_next?)
-      iterator.set_next(alfa)
+      i2.set_next(alfa * iterator.get_next)
     end
+    scal2v
     
   end
 
@@ -153,24 +159,31 @@ class Blis
   #
   #------------------------------------------------------------------------------------
 
-  def self.scal2v(alfa, vec)
+  def self.setv(vec, alfa)
 
-    # create a new vector to store the result, with the proper shape and fill it
-    # with 0 initially
-    # axpy = MDArray.init_with(:double, vec1.shape, 0)
-    # By default, every array is filled with 0, so there is no need to explicitly
-    # initialize it as above
-    scal2v = MDArray.double(vec.shape)
-
-    # iterator fast will go through every element of the arrays in canonical order
     iterator = MDArray::IteratorFastDouble.new(vec)
-    i2 = MDArray::IteratorFastDouble.new(scal2v)
-
+    
     while(iterator.has_next?)
-      i2.set_next(alfa * iterator.get_next)
+      iterator.set_next(alfa)
     end
-    scal2v
     
   end
+
+  #------------------------------------------------------------------------------------
+  # y := y - conjx(x)
+  #------------------------------------------------------------------------------------
+
+  def self.subv(vec1, vec2)
+
+  end
+    
+  #------------------------------------------------------------------------------------
+  # Swap corresponding elements of two m-length vectors x and y.
+  #------------------------------------------------------------------------------------
+
+  def self.swapv(vec1, vec2)
+
+  end
   
+
 end

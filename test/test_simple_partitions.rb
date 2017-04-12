@@ -23,7 +23,7 @@ require "test/unit"
 require 'shoulda'
 
 require '../config' if @platform == nil
-require 'mdarray-laff'
+require 'mdarray-blis'
 
 
 class MDArrayLaffTest < Test::Unit::TestCase
@@ -250,15 +250,22 @@ class MDArrayLaffTest < Test::Unit::TestCase
       assert_equal(true, MDArray.double([1,3], [2, 3, 4]).identical(partitions[0][1]))
       
       # Last partition is the EmptyArray
-      assert_equal(true, partitions[i-1][1].empty?)
+      assert_equal(0.0, partitions[i-1][1])
 
       @c_vec.part_by(:row, column_dir: :bt)
+      i = 0
+      partitions = []
       @c_vec.each_part do |top, bottom|
-        p "===== new partition ====="
-        top.pp
-        bottom.pp
-      end      
+        partitions[i] = [top, bottom]
+        i += 1
+      end
       
+      assert_equal(true, MDArray.double([3,1], [1, 2, 3]).identical(partitions[0][0]))
+      assert_equal(true, MDArray.double([1,1], [4]).identical(partitions[0][1]))
+      
+      assert_equal(true, MDArray.double([2,1], [1, 2]).identical(partitions[1][0]))
+      assert_equal(true, MDArray.double([1,1], [3]).identical(partitions[1][1]))
+
     end
 
     #--------------------------------------------------------------------------------------
@@ -267,17 +274,16 @@ class MDArrayLaffTest < Test::Unit::TestCase
     
     should "get every partition from a vector as enumerator" do
 
-      p "=================enumerator====================="
       @r_vec.part_by(:column, row_dir: :lr)
       
       part = @r_vec.each_part
       left, right = part.next
-      left.pp
-      right.pp
+      assert_equal(true, MDArray.double([1,1], [1]).identical(left))
+      assert_equal(true, MDArray.double([1,3], [2, 3, 4]).identical(right))
 
       left, right = part.next
-      left.pp
-      right.pp
+      assert_equal(true, MDArray.double([1,1], [2]).identical(left))
+      assert_equal(true, MDArray.double([1,2], [3, 4]).identical(right))
       
     end
 

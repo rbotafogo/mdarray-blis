@@ -23,8 +23,7 @@ require "test/unit"
 require 'shoulda'
 
 require '../config' if @platform == nil
-require 'mdarray-laff'
-
+require 'mdarray-blis'
 
 
 class MDArrayTest < Test::Unit::TestCase
@@ -42,7 +41,19 @@ class MDArrayTest < Test::Unit::TestCase
       @matrix = MDArray.double([3, 3], [-1, 0, 2,
                                         2, -1, 1,
                                         3, 1, -1])
-      
+
+      @m1 = MDArray.double([3, 3], [0.4, 0.3, 0.1,
+                                    0.4, 0.3, 0.6,
+                                    0.2, 0.4, 0.3])
+
+      @m2 = MDArray.double([4, 3], [2, 0, 1,
+                                    -1, 1, 0,
+                                    1, 3, 1,
+                                    -1, 1, 1])
+
+      @m3 = MDArray.double([3, 4], [2, 1, 2, 1,
+                                    0, 1, 0, 1,
+                                    1, 0, 1, 0])
     end
 
     #--------------------------------------------------------------------------------------
@@ -57,6 +68,21 @@ class MDArrayTest < Test::Unit::TestCase
 
       Blis.gemv_dot(2, 2, yvec, @matrix, @c_vec)
       yvec.pp
+
+      p "matrix matrix"
+      res = MDArray.double([3, 3])
+      Blis.gemm_dot(res, @m1, @m1)
+      res.pp
+
+      p "m2 * m3"
+      res = MDArray.double([4, 4])
+      Blis.gemm_dot(res, @m2, @m3)
+      res.pp
+      
+      p "m3 * m2"
+      res = MDArray.double([3, 3])
+      Blis.gemm_dot(res, @m3, @m2)
+      res.pp
       
     end
 

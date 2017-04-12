@@ -121,6 +121,10 @@ module BlisMatrix
 
   # private
 
+  #------------------------------------------------------------------------------------
+  #
+  #------------------------------------------------------------------------------------
+
   def set_duplicate
     @pfunction = nil
   end
@@ -130,20 +134,16 @@ end
 
 class MDArray
   include BlisMatrix
-
 end
 
 require_relative 'util/simple_partitions'
 require_relative 'util/generalized_partitions'
 
 require_relative 'base/level-1v'
-require_relative 'base/level-1d'
-require_relative 'base/level-1m'
-require_relative 'base/level-1f'
+#require_relative 'base/level-1d'
+#require_relative 'base/level-1m'
+#require_relative 'base/level-1f'
 require_relative 'base/level-2'
-require_relative 'base/level-3'
+#require_relative 'base/level-3'
 
-
-require_relative 'base/vecvec'
-require_relative 'base/matvec'
 require_relative 'base/matmat'
