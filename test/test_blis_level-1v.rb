@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
-# Copyright © 2016 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
+# Copyright © 2017 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
 # paragraph and the following two paragraphs appear in all copies, modifications, and 
@@ -23,12 +23,12 @@ require "test/unit"
 require 'shoulda'
 
 require '../config' if @platform == nil
-require 'mdarray-laff'
+require 'mdarray-blis'
 
 
-class LaffMatrixTest < Test::Unit::TestCase
+class MDArrayTest < Test::Unit::TestCase
 
-  context "LaffMatrix" do
+  context "Blis" do
 
     #--------------------------------------------------------------------------------------
     #
@@ -36,13 +36,23 @@ class LaffMatrixTest < Test::Unit::TestCase
 
     setup do 
 
-      # a vector is an MDArray with one of it´s dimension equal to 1
-      # this is a row vector with 4 rows and 1 column
-      @matrix = MDArray.double([4, 4],
-                               [1, 2, 3, 4,
-                                5, 6, 7, 8,
-                                9, 10,11, 12,
-                                13, 14, 15, 16])
+      # row vector
+      @r_vec = MDArray.double([1, 5], [2, -1, 4, 2, 1])
+      # column vector
+      @c_vec = MDArray.double([5, 1], [1, -2, 2, 3, -1])
+      
+    end
+
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do dot product between two vectors using Blis library (no error checking)" do
+
+      assert_equal(17, Blis.dotv(@r_vec, @c_vec))
+      # does not do any error checking, so a colum vector dot a row vector works fine.
+      assert_equal(17, Blis.dotv(@c_vec, @r_vec))
       
     end
 
@@ -50,15 +60,42 @@ class LaffMatrixTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "partition an array by columns from left to right" do
+    should "do dot product between two vectors using ruby interface" do
 
-      @matrix.part_by(:column, row_dir: :lr)
+      assert_equal(17, @r_vec.dotv(@c_vec))
+
+      # Will raise an error, since dotv expects a row vector as first operand
+      assert_raise (RuntimeError) { @c_vec.dotv(@r_vec) }
       
-      @matrix.each_part do |left, right|
-        p "new partition============"
-        left.pp
-        right.pp
-      end
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do axpy between two vectors using Blis library (no error checking)" do
+
+      v1 = MDArray.double([5, 1], [2, -1, 4, 2, 1])
+      v2 = MDArray.double([5, 1], [1, -2, 2, 3, -1])
+
+      axpy = MDArray.double([5, 1], [-1.0, -1.0, -2.0, 1.0, -2.0])
+      
+      # now destroy the first vector with the result
+      Blis.axpyv(-1, v1, v2)
+      assert_equal(true, v2.identical(axpy))
+      
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "invert a vector using Blis library" do
+
+      Blis.invertv(@r_vec)
+      assert_equal(true,
+                   @r_vec.identical(MDArray.double([1, 5],
+                                                   [1/2.0, -1.0, 1.0/4, 1.0/2, 1.0])))
       
     end
     
@@ -66,65 +103,26 @@ class LaffMatrixTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "partition an array by rows from top to bottom" do
+    should "scale a vector destructively" do
 
-      @matrix.part_by(:row, column_dir: :tb)
-      
-      @matrix.each_part do |top, bottom|
-        p "new partition============"
-        top.pp
-        bottom.pp
-      end
-      
+      Blis.scalv(5, @r_vec)
+      res = MDArray.double([1, 5], [5 * 2, 5 * -1, 5 * 4, 5 * 2, 5 * 1])
+      assert_equal(true, res.identical(@r_vec))
+
     end
-
+    
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "slice an array returning 4 vectors left/right, top/bottom" do
+    should "scale a vector constructing a new one" do
 
-      p "first part"
-      first_part = @matrix.part_by_four_vecs_lr_tb_first_part
-      first_part[0].pp
-      first_part[1].pp
-      first_part[2].pp
-      first_part[3].pp
-
-      p "body part"
-      part = @matrix.part_by_four_vecs_lr_tb(part_size: 2)
-      part[0].pp
-      part[1].pp
-      part[2].pp
-      part[3].pp
-
-      p "last part"
-      last_part = @matrix.part_by_four_vecs_lr_tb_last_part
-      last_part[0].pp
-      last_part[1].pp
-      last_part[2].pp
-      last_part[3].pp
-      
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "partition the matrix in 4 vectors" do
-
-      @matrix.part_by(:four_vecs, row_dir: :lr, column_dir: :tb)
-      
-      @matrix.each_part do |tl, tr, bl, br|
-        p "==========================="
-        tl.pp
-        tr.pp
-        bl.pp
-        br.pp
-      end
+      scal = Blis.scal2v(5, @r_vec)
+      res = MDArray.double([1, 5], [5 * 2, 5 * -1, 5 * 4, 5 * 2, 5 * 1])
+      assert_equal(true, res.identical(scal))
 
     end
 
   end
-  
+
 end

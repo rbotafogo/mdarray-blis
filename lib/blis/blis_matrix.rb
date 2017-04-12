@@ -30,7 +30,9 @@ module BlisMatrix
 
   attr_reader :pfunction
   attr_reader :part_to
-  attr_accessor :empty
+  attr_reader :empty
+  attr_reader :blis_conjugate
+  attr_reader :blis_uplo
 
   #------------------------------------------------------------------------------------
   #
@@ -38,14 +40,16 @@ module BlisMatrix
 
   def part_by(type, row_dir: nil, column_dir: nil, filter: false)
 
+    raise "Only rank 2 MDArray can be partitioned by part_by" if rank != 2
+    
     # an array can only be partitioned in one way.  If we call part_by on one array and
     # then pass this array to another method that needs to part the array we need to
     # duplicate the array.
     if (@pfunction != nil)
       duplicate = self.dup
       duplicate.set_duplicate
-      duplicate.part_by(type, row_dir: row_dir, column_dir: column_dir, filter: filter)
-      return duplicate.enum_for(:each_part)
+      return duplicate.part_by(type, row_dir: row_dir, column_dir: column_dir, filter: filter)
+      # return duplicate.enum_for(:each_part)
     end
     
     raise "Partition type unknown #{type}" if ((type != :column) && (type != :row) &&
@@ -128,9 +132,32 @@ module BlisMatrix
   def set_duplicate
     @pfunction = nil
   end
-  
-end
 
+  #------------------------------------------------------------------------------------
+  # is stored in (and will be accessed only from) the lower triangle.
+  #------------------------------------------------------------------------------------
+
+  def set_lower
+    @blis_uplo = :blis_lower
+  end
+  
+  #------------------------------------------------------------------------------------
+  # is stored in (and will be accessed only from) the upper triangle.
+  #------------------------------------------------------------------------------------
+
+  def set_upper
+    @blis_uplo = :blis_upper
+  end
+  
+  #------------------------------------------------------------------------------------
+  # is stored as a full matrix (ie: in both triangles).
+  #------------------------------------------------------------------------------------
+
+  def set_dense
+    @blis_uplo = :blis_dense
+  end
+
+end
 
 class MDArray
   include BlisMatrix
@@ -144,6 +171,4 @@ require_relative 'base/level-1v'
 #require_relative 'base/level-1m'
 #require_relative 'base/level-1f'
 require_relative 'base/level-2'
-#require_relative 'base/level-3'
-
-require_relative 'base/matmat'
+require_relative 'base/level-3'

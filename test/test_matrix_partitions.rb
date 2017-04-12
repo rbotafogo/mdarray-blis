@@ -26,9 +26,9 @@ require '../config' if @platform == nil
 require 'mdarray-laff'
 
 
-class BlisMatrixTest < Test::Unit::TestCase
+class LaffMatrixTest < Test::Unit::TestCase
 
-  context "BlisMatrix" do
+  context "Blis" do
 
     #--------------------------------------------------------------------------------------
     #
@@ -43,7 +43,7 @@ class BlisMatrixTest < Test::Unit::TestCase
                                 5, 6, 7, 8,
                                 9, 10,11, 12,
                                 13, 14, 15, 16])
-
+      
       @m2 = MDArray.double([5, 5],
                            [1, -1, 3, 2, -2,
                             2, -2, 1, 0, -1,
@@ -51,8 +51,6 @@ class BlisMatrixTest < Test::Unit::TestCase
                             3, 1, -2, 1, 0,
                             -1, 2, 1, -1, -2])
       
-      @vec = MDArray.double([5, 1], [-1, 0, 2, -1, 1])
-
       @u = MDArray.double([5, 5],
                           [-1, 2, 4, 1, 0,
                            0, 0, -1, -2, 1,
@@ -60,59 +58,21 @@ class BlisMatrixTest < Test::Unit::TestCase
                            0, 0, 0, 4, 3,
                            0, 0, 0, 0, 2])
 
-      @uvec = MDArray.double([5, 1], [1, 2, 3, 4, 5])
-      
     end
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "multiply matrix by vector" do
+    should "partition an array by columns from left to right" do
 
-      yvec = MDArray.double([5, 1])
-      zvec = MDArray.double([5, 1])
-      wvec = MDArray.double([5, 1])
-      kvec = MDArray.double([5, 1])
-
-      Blis.gemv_6part_dot(1, 1, yvec, @m2, @vec)
-      yvec.pp
-
-      Blis.gemv_dot(1, 1, zvec, @m2, @vec)
-      zvec.pp
-
-      Blis.gemv_axpy(1, 1, kvec, @m2, @vec)
-      kvec.pp
-
-      Blis.gemv_6part_axpy(1, 1, wvec, @m2, @vec)
-      wvec.pp
-
-      p "square a matrix"
-      t = MDArray.double([5, 5])
-      Blis.gemm_dot(t, @m2, @m2)
-      t.pp
-
-      mt = MDMatrix.from_mdarray(@m2)
-      mt.print
-      res = mt.mult(mt)
-      res.print 
+      @matrix.part_by(:column, row_dir: :lr)
       
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "multiply transpose matrix by vector" do
-
-      zvec = MDArray.double([5, 1])
-      kvec = MDArray.double([5, 1])
-
-      Blis.getmv_dot(1, 1, zvec, @m2, @vec)
-      zvec.pp
-
-      Blis.getmv_axpy(1, 1, kvec, @m2, @vec)
-      kvec.pp
+      @matrix.each_part do |left, right|
+        p "new partition============"
+        left.pp
+        right.pp
+      end
       
     end
     
@@ -120,20 +80,18 @@ class BlisMatrixTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "multiply upper triangular matrix by vector" do
+    should "partition an array by rows from top to bottom" do
 
-      yvec = MDArray.double([5, 1])
-      zvec = MDArray.double([5, 1])
-
-      p "upper triangular matrix multiply"
-      Blis.gemv_6part_dot(1, 1, yvec, @u, @uvec)
-      yvec.pp
+      @matrix.part_by(:row, column_dir: :tb)
       
-      Blis.geutriangmv_6part_dot(1, 1, zvec, @u, @uvec)
-      zvec.pp
-
+      @matrix.each_part do |top, bottom|
+        p "new partition============"
+        top.pp
+        bottom.pp
+      end
+      
     end
-    
+
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -248,55 +206,7 @@ class BlisMatrixTest < Test::Unit::TestCase
       
     end
 =end    
-=begin
 
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "slice an array returning 4 vectors left/right, top/bottom" do
-
-      p "first part"
-      first_part = @matrix.part_by_four_vecs_lr_tb_first_part
-      first_part[0].pp
-      first_part[1].pp
-      first_part[2].pp
-      first_part[3].pp
-
-      p "body part"
-      part = @matrix.part_by_four_vecs_lr_tb(part_size: 2)
-      part[0].pp
-      part[1].pp
-      part[2].pp
-      part[3].pp
-
-      p "last part"
-      last_part = @matrix.part_by_four_vecs_lr_tb_last_part
-      last_part[0].pp
-      last_part[1].pp
-      last_part[2].pp
-      last_part[3].pp
-      
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "partition the matrix in 4 vectors" do
-
-      @matrix.part_by(:four_vecs, row_dir: :lr, column_dir: :tb)
-      
-      @matrix.each_part do |tl, tr, bl, br|
-        p "==========================="
-        tl.pp
-        tr.pp
-        bl.pp
-        br.pp
-      end
-
-    end
-=end  
   end
   
 end

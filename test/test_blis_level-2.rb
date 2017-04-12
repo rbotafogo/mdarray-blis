@@ -23,18 +23,24 @@ require "test/unit"
 require 'shoulda'
 
 require '../config' if @platform == nil
-require 'mdarray-laff'
+require 'mdarray-blis'
 
 
 class BlisMatrixTest < Test::Unit::TestCase
 
-  context "BlisMatrix" do
+  context "Blis" do
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
     setup do 
+
+      @matrix = MDArray.double([4, 4],
+                               [1, 2, 3, 4,
+                                5, 6, 7, 8,
+                                9, 10,11, 12,
+                                13, 14, 15, 16])
 
       @m2 = MDArray.double([5, 5],
                            [1, -1, 3, 2, -2,
@@ -43,6 +49,8 @@ class BlisMatrixTest < Test::Unit::TestCase
                             3, 1, -2, 1, 0,
                             -1, 2, 1, -1, -2])
       
+      @vec = MDArray.double([5, 1], [-1, 0, 2, -1, 1])
+
       @u = MDArray.double([5, 5],
                           [-1, 2, 4, 1, 0,
                            0, 0, -1, -2, 1,
@@ -50,35 +58,80 @@ class BlisMatrixTest < Test::Unit::TestCase
                            0, 0, 0, 4, 3,
                            0, 0, 0, 0, 2])
 
+      @uvec = MDArray.double([5, 1], [1, 2, 3, 4, 5])
+      
     end
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "do matrix matrix multiplication" do
+    should "multiply matrix by vector" do
+
+      yvec = MDArray.double([5, 1])
+      zvec = MDArray.double([5, 1])
+      wvec = MDArray.double([5, 1])
+      kvec = MDArray.double([5, 1])
+
+      Blis.gemv_6part_dot(1, 1, yvec, @m2, @vec)
+      yvec.pp
+
+      Blis.gemv_dot(1, 1, zvec, @m2, @vec)
+      zvec.pp
+
+      Blis.gemv_axpy(1, 1, kvec, @m2, @vec)
+      kvec.pp
+
+      Blis.gemv_6part_axpy(1, 1, wvec, @m2, @vec)
+      wvec.pp
 
       p "square a matrix"
       t = MDArray.double([5, 5])
       Blis.gemm_dot(t, @m2, @m2)
       t.pp
 
-#=begin      
       mt = MDMatrix.from_mdarray(@m2)
+      mt.print
       res = mt.mult(mt)
-      res.print 
-      #=end
-
-      t = MDArray.double([5, 5])
-      Blis.gemm_dot(t, @m2, @u)
-      t.pp
-
-      umat = MDMatrix.from_mdarray(@u)
-      res = mt.mult(umat)
       res.print 
       
     end
 
-  end
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
+    should "multiply transpose matrix by vector" do
+
+      zvec = MDArray.double([5, 1])
+      kvec = MDArray.double([5, 1])
+
+      Blis.getmv_dot(1, 1, zvec, @m2, @vec)
+      zvec.pp
+
+      Blis.getmv_axpy(1, 1, kvec, @m2, @vec)
+      kvec.pp
+      
+    end
+    
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "multiply upper triangular matrix by vector" do
+
+      yvec = MDArray.double([5, 1])
+      zvec = MDArray.double([5, 1])
+
+      p "upper triangular matrix multiply"
+      Blis.gemv_6part_dot(1, 1, yvec, @u, @uvec)
+      yvec.pp
+      
+      Blis.geutriangmv_6part_dot(1, 1, zvec, @u, @uvec)
+      zvec.pp
+
+    end
+    
+  end
+  
 end

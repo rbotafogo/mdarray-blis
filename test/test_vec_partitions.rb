@@ -42,12 +42,6 @@ class MDArrayLaffTest < Test::Unit::TestCase
       @r_vec2 = MDArray.double([1, 4], [1, 2, 3, 5])
       @c_vec = MDArray.double([4, 1], [1, 2, 3, 4])
 
-      @matrix = MDArray.double([4, 4],
-                               [1, 2, 3, 4,
-                                5, 6, 7, 8,
-                                9, 10,11, 12,
-                                13, 14, 15, 16])
-      
     end
 
     #--------------------------------------------------------------------------------------
