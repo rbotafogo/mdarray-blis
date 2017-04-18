@@ -31,8 +31,10 @@ module BlisMatrix
   attr_reader :pfunction
   attr_reader :part_to
   attr_reader :empty
+  
   attr_reader :blis_conjugate
   attr_reader :blis_uplo
+  attr_reader :diag
 
   #------------------------------------------------------------------------------------
   #

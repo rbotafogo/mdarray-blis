@@ -30,7 +30,7 @@ class Blis
   # @param m2 [MDArray]
   #------------------------------------------------------------------------------------
   
-  def self.gemm_dot(result_matrix, m1, m2)
+  def self.gemm_mvdot(result_matrix, m1, m2)
 
     respart = result_matrix.part_by(:column, row_dir: :lr, filter: 0b10)
     m2part = m2.part_by(:column, row_dir: :lr, filter: 0b10)
@@ -41,4 +41,41 @@ class Blis
     
   end
   
+  #------------------------------------------------------------------------------------
+  # Mutiplies two matrices storing the result in result_matrix based on gemv_dot doing
+  # vector matrix multiplication
+  # @param result_matrix [MDArray]
+  # @param m1 [MDArray]
+  # @param m2 [MDArray]
+  #------------------------------------------------------------------------------------
+  
+  def self.gemm_vmdot(result_matrix, m1, m2)
+
+    respart = result_matrix.part_by(:row, column_dir: :tb, filter: 0b10)
+    m1part = m1.part_by(:row, column_dir: :tb, filter: 0b10)
+
+    loop do
+      Blis.gemm_mvdot(respart.next, m1part.next, m2)
+    end
+    
+  end
+
+  #------------------------------------------------------------------------------------
+  # Mutiplies two matrices storing the result in result_matrix based on gemv_axpy
+  # @param result_matrix [MDArray]
+  # @param m1 [MDArray]
+  # @param m2 [MDArray]
+  #------------------------------------------------------------------------------------
+  
+  def self.gemm_mvaxpy(result_matrix, m1, m2)
+
+    respart = result_matrix.part_by(:column, row_dir: :lr, filter: 0b10)
+    m2part = m2.part_by(:column, row_dir: :lr, filter: 0b10)
+
+    loop do
+      Blis.gemv_axpy(1, 1, respart.next, m1, m2part.next)
+    end
+    
+  end
+
 end

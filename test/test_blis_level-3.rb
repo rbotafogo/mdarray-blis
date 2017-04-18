@@ -60,32 +60,55 @@ class MDArrayTest < Test::Unit::TestCase
     #
     #--------------------------------------------------------------------------------------
 
-    should "do matrix vector multiplication based on dotv" do
+    should "do matrix matrix multiplication based on dotv" do
 
       @matrix.pp
       @c_vec.pp
       yvec = MDArray.double([3, 1], [1, 1, 1])
 
-      Blis.gemv_dot(2, 2, yvec, @matrix, @c_vec)
-      yvec.pp
-
       p "matrix matrix"
       res = MDArray.double([3, 3])
-      Blis.gemm_dot(res, @m1, @m1)
+      Blis.gemm_mvdot(res, @m1, @m1)
       res.pp
 
       p "m2 * m3"
       res = MDArray.double([4, 4])
-      Blis.gemm_dot(res, @m2, @m3)
+      Blis.gemm_mvdot(res, @m2, @m3)
       res.pp
       
       p "m3 * m2"
       res = MDArray.double([3, 3])
-      Blis.gemm_dot(res, @m3, @m2)
+      Blis.gemm_mvdot(res, @m3, @m2)
       res.pp
       
     end
 
-  end
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
+    should "do matrix matrix multiplication based on axpy" do
+
+      p "matrix matrix"
+      res = MDArray.double([3, 3])
+      Blis.gemm_mvaxpy(res, @m1, @m1)
+      res.pp
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do matrix matrix multiplication by row based on dotv" do
+
+      p "matrix matrix row first dotv"
+      res = MDArray.double([3, 3])
+      Blis.gemm_vmdot(res, @m1, @m1)
+      res.pp
+
+    end
+
+  end
+  
 end

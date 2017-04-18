@@ -24,10 +24,10 @@
 class Blis
 
   #------------------------------------------------------------------------------------
-  # vec1 := vec1 + conjx(vec2), where vec1 and vec2 are vectors of length m.
+  # y := y + conjx(x), where vecx and vecy are vectors of length m.
   #------------------------------------------------------------------------------------
 
-  def self.addv(vec1, vec2)
+  def self.addv(vecx, vecy)
 
   end
 
@@ -38,23 +38,23 @@ class Blis
   # maximum absolute value in the netlib BLAS routines i?amax().  
   #----------------------------------------------------------------------------------------
 
-  def self.amaxv(vec)
+  def self.amaxv(vecx)
 
   end
   
   #------------------------------------------------------------------------------------
   # Does axpy operation between vectors.
-  # vec2 = alfa * vec1 + vec2
+  # vecy = alpha * vecx + vecy
   #------------------------------------------------------------------------------------
 
-  def self.axpyv(alfa, vec1, vec2)
+  def self.axpyv(alpha, vecx, vecy)
 
     # iterator fast will go through every element of the arrays in canonical order
-    i1 = MDArray::IteratorFastDouble.new(vec1)
-    i2 = MDArray::IteratorFastDouble.new(vec2)
+    xi = MDArray::IteratorFastDouble.new(vecx)
+    yi = MDArray::IteratorFastDouble.new(vecy)
 
-    while(i1.has_next?)
-      i2.set_current(alfa * i1.get_next + i2.get_next)
+    (0...vecx.shape.max).each do
+      yi.set_current(alpha * xi.get_next + yi.get_next)
     end
     
   end
@@ -65,14 +65,14 @@ class Blis
   # param vec2 [MDArray] the vector to be copied
   #------------------------------------------------------------------------------------
 
-  def self.copyv(vec1, vec2)
+  def self.copyv(vecx, vecy)
     
     # iterator fast will go through every element of the arrays in canonical order
-    i1 = MDArray::IteratorFastDouble.new(vec1)
-    i2 = MDArray::IteratorFastDouble.new(vec2)
+    xi = MDArray::IteratorFastDouble.new(vecx)
+    yi = MDArray::IteratorFastDouble.new(vecy)
 
-    while(i1.has_next?)
-      i1.set_next(i2.get_next)
+    (0...vecx.shape.max).each do
+      xi.set_next(yi.get_next)
     end
     
   end
@@ -80,22 +80,22 @@ class Blis
   #------------------------------------------------------------------------------------
   # Performs a dotv operation between two vectors.  No error checking is done. Vectors
   # can be row or column vectors that no error will be issued.
-  # @param r_vec [MDArray] an MDArray configured as a vector: dimension [x, 1] or [1, x]
-  # @param c_vec [MDArray] an MDArray configured as a vector: dimension [1, x] or [x, 1]
-  # @return number [Numeric] a numeric value representing the dot product between
-  # r_vec and c_vec
+  # @param vecx [MDArray] an MDArray configured as a vector: dimension [x, 1] or [1, x]
+  # @param vecy [MDArray] an MDArray configured as a vector: dimension [1, x] or [x, 1]
+  # @return rho [Numeric] a numeric value representing the dot product between
+  # vecx and vecy
   #------------------------------------------------------------------------------------
   
-  def self.dotv(r_vec, c_vec)
+  def self.dotv(vecx, vecy)
 
-    r_iterator = MDArray::IteratorFastDouble.new(r_vec)
-    c_iterator = MDArray::IteratorFastDouble.new(c_vec)
+    xi = MDArray::IteratorFastDouble.new(vecx)
+    yi = MDArray::IteratorFastDouble.new(vecy)
 
-    dot = 0
-    while(r_iterator.has_next?)
-      dot += r_iterator.get_next * c_iterator.get_next
+    rho = 0
+    (0...vecx.shape.max).each do
+      rho += xi.get_next * yi.get_next
     end
-    dot
+    rho
     
   end
 
@@ -103,40 +103,46 @@ class Blis
   # rho := beta * rho + alpha * conjx(x)^T * conjy(y)
   #------------------------------------------------------------------------------------
 
-  def self.dotxv(vec1, vec2)
+  def self.dotxv(alpha, vecx, vecy, beta, rho)
 
+    xi = MDArray::IteratorFastDouble.new(vecx)
+    yi = MDArray::IteratorFastDouble.new(vecy)
+
+    dot = 0
+    (0...vecx.shape.max).each do
+      rho = beta * rho + alpha * xi.get_next * yi.get_next
+    end
+    rho
+    
   end
 
   #------------------------------------------------------------------------------------
-  #
+  # Invert all elements of an m-length vector x.
   #------------------------------------------------------------------------------------
 
-  def self.invertv(vec)
+  def self.invertv(vecx)
 
-    iterator = MDArray::IteratorFastDouble.new(vec)
+    xi = MDArray::IteratorFastDouble.new(vecx)
     
-    while(iterator.has_next?)
-      iterator.set_current(1/iterator.get_next)
+    (0...vecx.shape.max).each do
+      xi.set_current(1/xi.get_next)
     end
     
   end
   
   #------------------------------------------------------------------------------------
-  #
+  # y := alpha * conjx(x)
   #------------------------------------------------------------------------------------
 
-  def self.scal2v(alfa, vec)
-
-    scal2v = MDArray.double(vec.shape)
+  def self.scal2v(alpha, vecy, vecx)
 
     # iterator fast will go through every element of the arrays in canonical order
-    iterator = MDArray::IteratorFastDouble.new(vec)
-    i2 = MDArray::IteratorFastDouble.new(scal2v)
+    xi = MDArray::IteratorFastDouble.new(vecx)
+    yi = MDArray::IteratorFastDouble.new(vecy)
 
-    while(iterator.has_next?)
-      i2.set_next(alfa * iterator.get_next)
+    (0...vecx.shape.max).each do
+      yi.set_next(alpha * xi.get_next)
     end
-    scal2v
     
   end
 
@@ -144,13 +150,13 @@ class Blis
   #
   #------------------------------------------------------------------------------------
   
-  def self.scalv(alfa, vec)
+  def self.scalv(alpha, vecx)
     
     # iterator fast will go through every element of the arrays in canonical order
-    i1 = MDArray::IteratorFastDouble.new(vec)
+    xi = MDArray::IteratorFastDouble.new(vecx)
 
-    while(i1.has_next?)
-      i1.set_current(alfa * i1.get_next)
+    (0...vecx.shape.max).each do
+      xi.set_current(alpha * xi.get_next)
     end
 
   end
@@ -159,12 +165,12 @@ class Blis
   #
   #------------------------------------------------------------------------------------
 
-  def self.setv(vec, alfa)
+  def self.setv(vecx, alpha)
 
-    iterator = MDArray::IteratorFastDouble.new(vec)
+    xi = MDArray::IteratorFastDouble.new(vecx)
     
-    while(iterator.has_next?)
-      iterator.set_next(alfa)
+    (0...vecx.shape.max).each do
+      xi.set_next(alpha)
     end
     
   end
@@ -173,7 +179,7 @@ class Blis
   # y := y - conjx(x)
   #------------------------------------------------------------------------------------
 
-  def self.subv(vec1, vec2)
+  def self.subv(vecx, vecy)
 
   end
     
@@ -181,9 +187,8 @@ class Blis
   # Swap corresponding elements of two m-length vectors x and y.
   #------------------------------------------------------------------------------------
 
-  def self.swapv(vec1, vec2)
+  def self.swapv(vecx, vecy)
 
   end
   
-
 end

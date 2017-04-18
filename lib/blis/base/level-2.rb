@@ -30,21 +30,45 @@ class Blis
   def gemv(alfa, beta, y_vec, a_mat, x_vec)
 
   end
+
+  #------------------------------------------------------------------------------------
+  # A := A + alpha * conjx(x) * conjy(y)^T
+  #------------------------------------------------------------------------------------
+
+  def self.ger(alpha, matrix, vecx, vecy)
+
+    mpart = matrix.part_by(:row, column_dir: :tb, filter: 0b10)
+    xi = MDArray::IteratorFastDouble.new(vecx)
+    
+    loop do
+      # If we put mpart.next inside scal2v, ruby throws an exception since xi.next
+      # will be called before mpart.next and on the last call xi.next is out of bounds
+      top = mpart.next
+      Blis.scal2v(alpha * xi.next, top, vecy)
+    end
+
+  end
+  
   
   #------------------------------------------------------------------------------------
   # Generalized matrix vector multiply using dotv
   # y := beta*y + alfa*Ax
+  # @param alpha [Number]
+  # @param matrix [MDArray] the matrix tha multiplies the vector
+  # @param vecx [MDArray] the vector that multiplies the matrix
+  # @param beta [Number] number that multiplies vector y
+  # @param vecy [MDArray] vector y where the result is stored
   #------------------------------------------------------------------------------------
 
-  def self.gemv_dot(alfa, beta, y_vec, matrix, x_vec)
+  def self.gemv_dot(alpha, matrix, vecx, beta, vecy)
 
     mpart = matrix.part_by(:row, column_dir: :tb, filter: 0b10)
-    ypart = y_vec.part_by(:row, column_dir: :tb, filter: 0b10)
+    ypart = vecy.part_by(:row, column_dir: :tb, filter: 0b10)
 
     loop do
       top = mpart.next
       elmt = ypart.next
-      elmt[0, 0] = beta * elmt[0, 0] + alfa * Blis.dotv(top, x_vec)
+      elmt[0, 0] = beta * elmt[0, 0] + alpha * Blis.dotv(top, vecx)
     end
 
   end
@@ -54,15 +78,15 @@ class Blis
   # y := beta*y + alfa*Ax
   #------------------------------------------------------------------------------------
 
-  def self.getmv_dot(alfa, beta, y_vec, matrix, x_vec)
+  def self.getmv_dot(alpha, matrix, vecx, beta, vecy)
     
     mpart = matrix.part_by(:column, row_dir: :lr, filter: 0b10)
-    ypart = y_vec.part_by(:row, column_dir: :tb, filter: 0b10)
+    ypart = vecy.part_by(:row, column_dir: :tb, filter: 0b10)
 
     loop do
       left = mpart.next
       elmt = ypart.next
-      elmt[0, 0] = beta * elmt[0, 0] + alfa * Blis.dotv(left, x_vec)
+      elmt[0, 0] = beta * elmt[0, 0] + alpha * Blis.dotv(left, vecx)
     end
 
   end
@@ -72,15 +96,15 @@ class Blis
   # y := beta*y + alfa*Ax
   #------------------------------------------------------------------------------------
 
-  def self.gemv_axpy(alfa, beta, y_vec, matrix, x_vec)
+  def self.gemv_axpy(alpha, matrix, vecx, beta, vecy)
 
     mpart = matrix.part_by(:column, row_dir: :lr, filter: 0b10)
-    xpart = x_vec.part_by(:row, column_dir: :tb, filter: 0b10)
+    xpart = vecx.part_by(:row, column_dir: :tb, filter: 0b10)
 
     loop do
       left = mpart.next
       xscalar = xpart.next
-      Blis.axpyv(xscalar[0, 0], left, y_vec)
+      Blis.axpyv(xscalar[0, 0], left, vecy)
     end
 
   end
@@ -90,15 +114,15 @@ class Blis
   # y := beta*y + alfa*Ax
   #------------------------------------------------------------------------------------
 
-  def self.getmv_axpy(alfa, beta, y_vec, matrix, x_vec)
+  def self.getmv_axpy(alpha, matrix, vecx, beta, vecy)
 
     mpart = matrix.part_by(:row, column_dir: :tb, filter: 0b10)
-    xpart = x_vec.part_by(:row, column_dir: :tb, filter: 0b10)
+    xpart = vecx.part_by(:row, column_dir: :tb, filter: 0b10)
 
     loop do
       top = mpart.next
       xscalar = xpart.next
-      Blis.axpyv(xscalar[0, 0], top, y_vec)
+      Blis.axpyv(xscalar[0, 0], top, vecy)
     end
 
   end
@@ -108,21 +132,21 @@ class Blis
   # y := beta*y + alfa*Ax
   #------------------------------------------------------------------------------------
 
-  def self.gemv_6part_dot(alfa, beta, y_vec, matrix, x_vec)
+  def self.gemv_6part_dot(alpha, matrix, vecx, beta, vecy)
 
     mpart = matrix.part_by(:six, row_dir: :lr, column_dir: :tb, filter: 0b100110)
-    xpart = x_vec.part_by(:three_columns, column_dir: :tb)
-    ypart = y_vec.part_by(:three_columns, column_dir: :tb, filter: 0b100)
+    xpart = vecx.part_by(:three_columns, column_dir: :tb)
+    ypart = vecy.part_by(:three_columns, column_dir: :tb, filter: 0b100)
 
     loop do
       mscalar, mleft, mright = mpart.next
       xscalar, xtop, xbottom = xpart.next
       yscalar = ypart.next
-      
+
       yscalar[0, 0] = beta * yscalar[0, 0] +
-                      alfa * (Blis.dotv(mleft, xtop) +
-                              mscalar[0, 0] * xscalar[0, 0] +
-                              Blis.dotv(mright, xbottom))
+                      alpha * (Blis.dotv(mleft, xtop) +
+                               mscalar[0, 0] * xscalar[0, 0] +
+                               Blis.dotv(mright, xbottom))
       
     end 
 
@@ -133,11 +157,11 @@ class Blis
   # y := beta*y + alfa*Ax
   #------------------------------------------------------------------------------------
 
-  def self.gemv_6part_axpy(alfa, beta, y_vec, matrix, x_vec)
+  def self.gemv_6part_axpy(alpha, matrix, vecx, beta, vecy)
 
     mpart = matrix.part_by(:six, row_dir: :lr, column_dir: :tb, filter: 0b111000)
-    xpart = x_vec.part_by(:three_columns, column_dir: :tb, filter: 0b100)
-    ypart = y_vec.part_by(:three_columns, column_dir: :tb)
+    xpart = vecx.part_by(:three_columns, column_dir: :tb, filter: 0b100)
+    ypart = vecy.part_by(:three_columns, column_dir: :tb)
 
     loop do
       mscalar, mtop, mbottom = mpart.next
@@ -161,11 +185,11 @@ class Blis
   # y := beta*y + alfa*Ax
   #------------------------------------------------------------------------------------
 
-  def self.geutriangmv_6part_dot(alfa, beta, y_vec, matrix, x_vec)
+  def self.geutriangmv_6part_dot(alpha, matrix, vecx, beta, vecy)
 
     mpart = matrix.part_by(:six, row_dir: :lr, column_dir: :tb, filter: 0b100010)
-    xpart = x_vec.part_by(:three_columns, column_dir: :tb)
-    ypart = y_vec.part_by(:three_columns, column_dir: :tb, filter: 0b100)
+    xpart = vecx.part_by(:three_columns, column_dir: :tb)
+    ypart = vecy.part_by(:three_columns, column_dir: :tb, filter: 0b100)
 
     loop do
       mscalar, mright = mpart.next
@@ -173,8 +197,8 @@ class Blis
       yscalar = ypart.next
       
       yscalar[0, 0] = beta * yscalar[0, 0] +
-                      alfa * (mscalar[0, 0] * xscalar[0, 0] +
-                              Blis.dotv(mright, xbottom))
+                      alpha * (mscalar[0, 0] * xscalar[0, 0] +
+                               Blis.dotv(mright, xbottom))
     end 
 
   end

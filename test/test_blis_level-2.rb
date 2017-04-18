@@ -51,6 +51,7 @@ class BlisMatrixTest < Test::Unit::TestCase
       
       @vec = MDArray.double([5, 1], [-1, 0, 2, -1, 1])
 
+      # upper triangular matrix
       @u = MDArray.double([5, 5],
                           [-1, 2, 4, 1, 0,
                            0, 0, -1, -2, 1,
@@ -59,8 +60,29 @@ class BlisMatrixTest < Test::Unit::TestCase
                            0, 0, 0, 0, 2])
 
       @uvec = MDArray.double([5, 1], [1, 2, 3, 4, 5])
+      @r_vec = MDArray.double([1, 5], [1, 2, 3, 4, 5])
       
     end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do outer product between two vectors" do
+
+      outer = MDArray.double([5, 5])
+      res = MDArray.double([5, 5],
+                           [1.00, 2.00, 3.00, 4.00, 5.00,
+                            2.00, 4.00, 6.00, 8.00, 10.00,
+                            3.00, 6.00, 9.00, 12.00, 15.00,
+                            4.00, 8.00, 12.00, 16.00, 20.00,
+                            5.00, 10.00, 15.00, 20.00, 25.00])
+      
+      Blis.ger(1, outer, @uvec, @r_vec)
+      assert_equal(true, res.identical(outer))
+      
+    end
+    
 
     #--------------------------------------------------------------------------------------
     #
@@ -73,27 +95,20 @@ class BlisMatrixTest < Test::Unit::TestCase
       wvec = MDArray.double([5, 1])
       kvec = MDArray.double([5, 1])
 
-      Blis.gemv_6part_dot(1, 1, yvec, @m2, @vec)
-      yvec.pp
+      res = MDArray.double([5, 1],
+                           [1.00, -1.00, 5.00, -8.00, 2.00])
 
-      Blis.gemv_dot(1, 1, zvec, @m2, @vec)
-      zvec.pp
+      Blis.gemv_dot(1, @m2, @vec, 1, zvec)
+      assert_equal(true, res.identical(zvec))
 
-      Blis.gemv_axpy(1, 1, kvec, @m2, @vec)
-      kvec.pp
+      Blis.gemv_axpy(1, @m2, @vec, 1, kvec)
+      assert_equal(true, res.identical(kvec))
 
-      Blis.gemv_6part_axpy(1, 1, wvec, @m2, @vec)
-      wvec.pp
+      Blis.gemv_6part_dot(1, @m2, @vec, 1, yvec)
+      assert_equal(true, res.identical(yvec))
 
-      p "square a matrix"
-      t = MDArray.double([5, 5])
-      Blis.gemm_dot(t, @m2, @m2)
-      t.pp
-
-      mt = MDMatrix.from_mdarray(@m2)
-      mt.print
-      res = mt.mult(mt)
-      res.print 
+      Blis.gemv_6part_axpy(1, @m2, @vec, 1, wvec)
+      assert_equal(true, res.identical(wvec))
       
     end
 
@@ -106,14 +121,17 @@ class BlisMatrixTest < Test::Unit::TestCase
       zvec = MDArray.double([5, 1])
       kvec = MDArray.double([5, 1])
 
-      Blis.getmv_dot(1, 1, zvec, @m2, @vec)
-      zvec.pp
+      res = MDArray.double([5, 1],
+                           [-5.00, -6.00, 6.00, 0.00, 2.00])
 
-      Blis.getmv_axpy(1, 1, kvec, @m2, @vec)
-      kvec.pp
+      Blis.getmv_dot(1, @m2, @vec, 1, zvec)
+      assert_equal(true, res.identical(zvec))
+
+      Blis.getmv_axpy(1, @m2, @vec, 1, kvec)
+      assert_equal(true, res.identical(kvec))
       
     end
-    
+
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -124,14 +142,28 @@ class BlisMatrixTest < Test::Unit::TestCase
       zvec = MDArray.double([5, 1])
 
       p "upper triangular matrix multiply"
-      Blis.gemv_6part_dot(1, 1, yvec, @u, @uvec)
+      Blis.gemv_6part_dot(1, @u, @uvec, 1, yvec)
       yvec.pp
       
-      Blis.geutriangmv_6part_dot(1, 1, zvec, @u, @uvec)
+      Blis.geutriangmv_6part_dot(1, @u, @uvec, 1, zvec)
       zvec.pp
 
     end
-    
+
   end
   
 end
+
+
+=begin
+
+      p "square a matrix"
+      t = MDArray.double([5, 5])
+      Blis.gemm_dot(t, @m2, @m2)
+      t.pp
+
+      mt = MDMatrix.from_mdarray(@m2)
+      mt.print
+      res = mt.mult(mt)
+      res.print 
+=end      
