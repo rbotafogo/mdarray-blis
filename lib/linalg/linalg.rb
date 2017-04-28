@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
-# Copyright © 2016 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
+# @author Rodrigo Botafogo
+#
+# Copyright © 2017 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
 # paragraph and the following two paragraphs appear in all copies, modifications, and 
@@ -19,10 +21,5 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require_relative 'test_vec_partitions'
-require_relative 'test_matrix_partitions'
-
-require_relative 'test_blis_level-1v.rb'
-require_relative 'test_blis_level-2.rb'
-require_relative 'test_blis_level-3.rb'
-
+require_relative 'decomposition'
+require_relative 'algebra'

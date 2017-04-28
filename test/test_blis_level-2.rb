@@ -100,7 +100,7 @@ class BlisMatrixTest < Test::Unit::TestCase
 
       Blis.gemv_dot(1, @m2, @vec, 1, zvec)
       assert_equal(true, res.identical(zvec))
-
+      
       Blis.gemv_axpy(1, @m2, @vec, 1, kvec)
       assert_equal(true, res.identical(kvec))
 

@@ -86,12 +86,11 @@ class Blis
   # vecx and vecy
   #------------------------------------------------------------------------------------
   
-  def self.dotv(vecx, vecy)
+  def self.dotv(vecx, vecy, rho = 0)
 
     xi = MDArray::IteratorFastDouble.new(vecx)
     yi = MDArray::IteratorFastDouble.new(vecy)
 
-    rho = 0
     (0...vecx.shape.max).each do
       rho += xi.get_next * yi.get_next
     end
@@ -134,7 +133,7 @@ class Blis
   # y := alpha * conjx(x)
   #------------------------------------------------------------------------------------
 
-  def self.scal2v(alpha, vecy, vecx)
+  def self.scal2v(alpha, vecx, vecy)
 
     # iterator fast will go through every element of the arrays in canonical order
     xi = MDArray::IteratorFastDouble.new(vecx)

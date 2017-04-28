@@ -23,7 +23,7 @@ require "test/unit"
 require 'shoulda'
 
 require '../config' if @platform == nil
-require 'mdarray-laff'
+require 'mdarray-blis'
 
 
 class LaffMatrixTest < Test::Unit::TestCase
@@ -95,117 +95,50 @@ class LaffMatrixTest < Test::Unit::TestCase
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
-=begin
-    should "part generalized" do
 
-      @m2.empty = MDArray::EmptyArray.new(0)
-      part = @m2.part_by_six_lr_tb(rowi: 4, columni: 4)
+    should "partition an array in 6 vectors :lr, :tb" do
+
+      p "==== 6 partitions :lr, :tb ======"
       
-      part[0].pp
-      part[1].pp
-      part[2].pp
-      part[3].pp
-      part[4].pp
-      part[5].pp
+      mpart = @m2.part_by(:six, row_dir: :lr, column_dir: :tb)
 
-      vpart = @vec.part_by_three_columns_tb(rowi: 2)
-      vpart[0].pp
-      vpart[1].pp
-      vpart[2].pp
-      
-      
-    end
-=end    
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-=begin
-    should "slice an array returning 5 vectors left/right, top/bottom" do
-
-      @matrix.pp
-      
-      @matrix.part_by(:five_vecs, row_dir: :lr, column_dir: :tb)
-      
-      fp = @matrix.part_by_five_vecs_lr_tb_first
-      fp[0].pp
-      fp[1].pp
-      fp[2].pp
-      fp[3].pp
-      fp[4].pp
-
-      p "part_size: 1"
-      fp = @matrix.part_by_five_vecs_lr_tb(part_size: 1)
-      fp[0].pp
-      fp[1].pp
-      fp[2].pp
-      fp[3].pp
-      fp[4].pp
-
-      p "part_size: 2"
-      fp = @matrix.part_by_five_vecs_lr_tb(part_size: 2)
-      fp[0].pp
-      fp[1].pp
-      fp[2].pp
-      fp[3].pp
-      fp[4].pp
-      
-      p "part_size: last"
-      fp = @matrix.part_by_five_vecs_lr_tb_last(part_size: 3)
-      fp[0].pp
-      fp[1].pp
-      fp[2].pp
-      fp[3].pp
-      fp[4].pp
-
-    end
-       
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "partition the matrix in 5 vectors" do
-
-      @matrix.part_by(:five_vecs, row_dir: :lr, column_dir: :tb)
-      
-      @matrix.each_part do |elmt, tl, tr, bl, br|
-        p "==========================="
-        elmt.pp
-        tl.pp
-        tr.pp
-        bl.pp
-        br.pp
+      loop do
+        diag, top, bottom, left, right, a22 = mpart.next
+        diag.pp
+        top.pp
+        bottom.pp
+        left.pp
+        right.pp
+        a22.pp
       end
-
+      
     end
     
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "implement dot product with different algo" do
+    should "partition an array in 6 vectors :rl, :bt" do
 
-      @m2.part_by(:five_vecs, row_dir: :lr, column_dir: :tb, filter: 0b10011)
-      @vec.part_by(:row, column_dir: :tb)
-
-      mpart = @m2.each_part
-      vpart = @vec.each_part
+      p "==== 6 partitions :rl, :bt ================"
       
+      mpart = @m2.part_by(:six, row_dir: :rl, column_dir: :bt)
+
       loop do
-        p "======= elements for multiply======"
-        melmt, left, right = mpart.next
-        top, bottom = vpart.next
-        p "first"
-        melmt.pp
+        diag, top, bottom, left, right, a22 = mpart.next
+        diag.pp
         top.pp
-        p "second"
+        bottom.pp
         left.pp
         right.pp
-        bottom.pp
+        a22.pp
       end
-
       
     end
-=end    
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
   end
   

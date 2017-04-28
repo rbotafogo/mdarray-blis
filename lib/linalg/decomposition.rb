@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################################
-# Copyright © 2016 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
+# @author Rodrigo Botafogo
+#
+# Copyright © 2017 Rodrigo Botafogo. All Rights Reserved. Permission to use, copy, modify, 
 # and distribute this software and its documentation, without fee and without a signed 
 # licensing agreement, is hereby granted, provided that the above copyright notice, this 
 # paragraph and the following two paragraphs appear in all copies, modifications, and 
@@ -19,10 +21,28 @@
 # OR MODIFICATIONS.
 ##########################################################################################
 
-require_relative 'test_vec_partitions'
-require_relative 'test_matrix_partitions'
 
-require_relative 'test_blis_level-1v.rb'
-require_relative 'test_blis_level-2.rb'
-require_relative 'test_blis_level-3.rb'
+class MDArray
 
+  class LinAlg
+
+    #--------------------------------------------------------------------------------------
+    # Peforms LU decomposition of a matrix
+    # @param a [MDArray]
+    #--------------------------------------------------------------------------------------
+    
+    def self.lu(a)
+
+      apart = a.part_by(:six, row_dir: :lr, column_dir: :tb, filter: 0b101011)
+
+      loop do
+        diag, l21, a12, a22 = apart.next
+        Blis.scalv(1.0/diag[0, 0], l21)
+        Blis.ger(-1, a22, l21, Blis.trnsp(a12))
+      end
+      
+    end
+    
+  end
+
+end

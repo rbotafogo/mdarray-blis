@@ -24,58 +24,100 @@
 class Blis
 
   #------------------------------------------------------------------------------------
-  # Mutiplies two matrices storing the result in result_matrix based on gemv_dot
-  # @param result_matrix [MDArray]
-  # @param m1 [MDArray]
-  # @param m2 [MDArray]
+  # Mutiplies two matrices storing the result in c based on gemv_dot
+  # C := beta * C + alpha * transa(A) * transb(B)
+  # where C is an m x n matrix, transa(A) is an m x k matrix, and transb(B) is a k x n
+  # matrix.
+  # @param alpha [Number}
+  # @param a [MDArray]
+  # @param b [MDArray]
+  # @param beta [Number]
+  # @param c [MDArray]
   #------------------------------------------------------------------------------------
   
-  def self.gemm_mvdot(result_matrix, m1, m2)
+  def self.gemm_mvdot(alpha, a, b, beta, c)
 
-    respart = result_matrix.part_by(:column, row_dir: :lr, filter: 0b10)
-    m2part = m2.part_by(:column, row_dir: :lr, filter: 0b10)
+    cpart = c.part_by(:column, row_dir: :lr, filter: 0b10)
+    bpart = b.part_by(:column, row_dir: :lr, filter: 0b10)
 
     loop do
-      Blis.gemv_dot(1, 1, respart.next, m1, m2part.next)
+      Blis.gemv_dot(alpha, a, bpart.next, beta, cpart.next)
     end
     
   end
   
   #------------------------------------------------------------------------------------
-  # Mutiplies two matrices storing the result in result_matrix based on gemv_dot doing
+  # Mutiplies two matrices storing the result in c based on gemv_dot doing
   # vector matrix multiplication
-  # @param result_matrix [MDArray]
-  # @param m1 [MDArray]
-  # @param m2 [MDArray]
+  # C := beta * C + alpha * transa(A) * transb(B)
+  # where C is an m x n matrix, transa(A) is an m x k matrix, and transb(B) is a k x n
+  # matrix.
+  # @param alpha [Number}
+  # @param a [MDArray]
+  # @param b [MDArray]
+  # @param beta [Number]
+  # @param c [MDArray]
   #------------------------------------------------------------------------------------
   
-  def self.gemm_vmdot(result_matrix, m1, m2)
+  def self.gemm_vmdot(alpha, a, b, beta, c)
 
-    respart = result_matrix.part_by(:row, column_dir: :tb, filter: 0b10)
-    m1part = m1.part_by(:row, column_dir: :tb, filter: 0b10)
+    cpart = c.part_by(:row, column_dir: :tb, filter: 0b10)
+    apart = a.part_by(:row, column_dir: :tb, filter: 0b10)
 
     loop do
-      Blis.gemm_mvdot(respart.next, m1part.next, m2)
+      Blis.gemm_mvdot(alpha, apart.next, b, beta, cpart.next)
     end
     
   end
 
   #------------------------------------------------------------------------------------
-  # Mutiplies two matrices storing the result in result_matrix based on gemv_axpy
-  # @param result_matrix [MDArray]
-  # @param m1 [MDArray]
-  # @param m2 [MDArray]
+  # Mutiplies two matrices storing the result in c based on gemv_axpy
+  # @param alpha [Number}
+  # @param a [MDArray]
+  # @param b [MDArray]
+  # @param beta [Number]
+  # @param c [MDArray]
   #------------------------------------------------------------------------------------
   
-  def self.gemm_mvaxpy(result_matrix, m1, m2)
+  def self.gemm_mvaxpy(alpha, a, b, beta, c)
 
-    respart = result_matrix.part_by(:column, row_dir: :lr, filter: 0b10)
-    m2part = m2.part_by(:column, row_dir: :lr, filter: 0b10)
+    cpart = c.part_by(:column, row_dir: :lr, filter: 0b10)
+    bpart = b.part_by(:column, row_dir: :lr, filter: 0b10)
 
     loop do
-      Blis.gemv_axpy(1, 1, respart.next, m1, m2part.next)
+      Blis.gemv_axpy(alpha, a, bpart.next, beta, cpart.next)
     end
     
   end
 
+  #------------------------------------------------------------------------------------
+  # Multiplies two matrices storing the result in c based on rank-1 update.
+  # @param alpha [Number]
+  # @param a [MDArray]
+  # @param b [MDArray]
+  # @param beta [Number]
+  # @param c [MDArray] where the result of the multiplication is stored
+  #------------------------------------------------------------------------------------
+
+  def self.gemm_ger(alpha, a, b, beta, c)
+
+    apart = a.part_by(:column, row_dir: :lr, filter: 0b10)
+    bpart = b.part_by(:row, column_dir: :tb, filter: 0b10)
+
+    loop do
+      Blis.ger(alpha, c, apart.next, bpart.next)
+    end
+    
+  end
+
+  #------------------------------------------------------------------------------------
+  # transpose matrix a returning a matrix with the same backing store, but with indexes
+  # transposed
+  #------------------------------------------------------------------------------------
+
+  def self.trnsp(a)
+    return a if (a.shape[0] == 0)
+    a.transpose(0, 1)
+  end
+  
 end

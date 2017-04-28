@@ -24,27 +24,20 @@
 class Blis
 
   #------------------------------------------------------------------------------------
-  # y := beta * y + alpha * transa(A) * conjx(x)
-  #------------------------------------------------------------------------------------
-
-  def gemv(alfa, beta, y_vec, a_mat, x_vec)
-
-  end
-
-  #------------------------------------------------------------------------------------
   # A := A + alpha * conjx(x) * conjy(y)^T
   #------------------------------------------------------------------------------------
 
-  def self.ger(alpha, matrix, vecx, vecy)
+  def self.ger(alpha, a, vecx, vecy)
 
-    mpart = matrix.part_by(:row, column_dir: :tb, filter: 0b10)
+    apart = a.part_by(:row, column_dir: :tb, filter: 0b10)
     xi = MDArray::IteratorFastDouble.new(vecx)
     
     loop do
       # If we put mpart.next inside scal2v, ruby throws an exception since xi.next
       # will be called before mpart.next and on the last call xi.next is out of bounds
-      top = mpart.next
-      Blis.scal2v(alpha * xi.next, top, vecy)
+      # xin = alpha * xi.next
+      top = apart.next
+      Blis.axpyv(alpha * xi.next, vecy, top)
     end
 
   end

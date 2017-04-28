@@ -28,4 +28,6 @@ require_relative '../config'
 require_relative 'blis/blis_matrix'
 require_relative 'ruby_interface/base/vecvec'
 
+require_relative 'linalg/linalg.rb'
+
 

@@ -42,7 +42,11 @@ module BlisMatrix
 
   def part_by(type, row_dir: nil, column_dir: nil, filter: false)
 
-    raise "Only rank 2 MDArray can be partitioned by part_by" if rank != 2
+    # raise "Only rank 2 MDArray can be partitioned by part_by" if rank != 2
+    if (rank < 2)
+      @part_to = 1
+      enum_for(:each_part)
+    end
     
     # an array can only be partitioned in one way.  If we call part_by on one array and
     # then pass this array to another method that needs to part the array we need to
@@ -84,7 +88,7 @@ module BlisMatrix
                                                                 column_dir != :bt))
       direction = column_dir.to_s
       @part_to = shape[0]
-      @filter = filter || 0b111111
+      @filter = filter || 0b111
     when :quadrants
       raise "Row direction should be either :lr or :rl" if (row_dir == nil || (row_dir != :lr &&
                                                                                row_dir != :rl))

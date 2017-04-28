@@ -31,12 +31,12 @@ class Blis
 
   def self.axpy2v(alphax, alphay, vec_x, vec_y)
     
-    x_i = MDArray::IteratorFastDouble.new(vec_x)
-    y_i = MDArray::IteratorFastDouble.new(vec_y)
+    xi = MDArray::IteratorFastDouble.new(vecx)
+    yi = MDArray::IteratorFastDouble.new(vecy)
 
-    while(x_i.has_next?)
-      y_val = y_i.get_next
-      y_i.set_current(y_val + (alphax * x_i.get_next + alphay * y_val))
+    (0...vecx.shape.max).each do
+      yval = yi.get_next
+      yi.set_current(yval + (alphax * xi.get_next + alphay * yval))
     end
 
   end
@@ -48,8 +48,19 @@ class Blis
   # if optimized, is implemented as a fusion of calls to dotv and axpyv.
   #----------------------------------------------------------------------------------------
 
-  def self.dotaxpyv(alpha, vec_x, vec_y)
+  def self.dotaxpyv(alpha, vecx, vecy, rho)
+    
+    xi = MDArray::IteratorFastDouble.new(vecx)
+    yi = MDArray::IteratorFastDouble.new(vecy)
 
+    vecxt = vecx.transpose(0, 1)
+
+    (0...vecx.shape.max).each do
+      yval = yi.get_next
+      rho += xi.get_next * yval
+      yi.set_current(yval + (alphax * xi.get_next + alphay * yval))
+    end
+    
   end
 
 end

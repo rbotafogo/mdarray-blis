@@ -118,7 +118,7 @@ class MDArrayTest < Test::Unit::TestCase
     should "scale a vector constructing a new one" do
 
       scal = MDArray.double([1, 5])
-      Blis.scal2v(5, scal, @r_vec)
+      Blis.scal2v(5, @r_vec, scal)
       res = MDArray.double([1, 5], [5 * 2, 5 * -1, 5 * 4, 5 * 2, 5 * 1])
       assert_equal(true, res.identical(scal))
 
