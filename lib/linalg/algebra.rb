@@ -27,7 +27,9 @@ class MDArray
 
     #--------------------------------------------------------------------------------------
     # Forward solves Lz = b
-    # @param mLU [MDArray] Unit lower triangular matrix obtained after LU factorization
+    # @param mLU [MDArray] matrix obtained after LU factorization. In this method only
+    # the lower triangular part is used and everything in the and above the diagonal is
+    # ignored
     # @param vb [MDArray] b vector so that Lz = b.  The result is stored in b.
     #--------------------------------------------------------------------------------------
 
@@ -41,10 +43,34 @@ class MDArray
         beta1, b2 = vbpart.next
         Blis.axpyv(-beta1[0, 0], l21, b2)
       end
+      vb
       
     end
+     
+    #--------------------------------------------------------------------------------------
+    # Back substitution Ux = b
+    # @param mLU [MDArray] matrix obtained after LU factorization. In this method only the
+    # upper triangular part of the matrix is used and elements bellow the diagonal are
+    # considered to be zero.
+    # @param vb [MDArray] b vector so that Ux = b.  The result is stored in b.
+    #--------------------------------------------------------------------------------------
+
+    def self.back_substitution(mLU, vb)
+
+      mUpart = mLU.part_by(:six, row_dir: :rl, column_dir: :bt, filter: 0b001000)
+      vbpart = vb.part_by(:row, column_dir: :bt, filter: 0b11)
+
+      loop do
+        beta1, bottom = vbpart.next
+        beta1.pp
+        bottom.pp
+        
+      end
+      
+    end
+
     
   end
-
+  
 end
 

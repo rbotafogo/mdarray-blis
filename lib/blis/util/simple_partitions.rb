@@ -106,18 +106,20 @@ class MDArray
   
   def part_by_row_bt(part_size:, filter: 0b11)
 
-    part = []
-
-    # top part - All rows from the top to row indexed as part_size
-    ((filter & 0b10) != 0) &&
-      part << ((part_size == shape[0] - 1)? @empty : 
-                 region(origin: [0, 0], size: [shape[0] - 1 - part_size, shape[1]],
-                        stride: [1, 1]))
+    origin = shape[0] - 1 - part_size
     
-    # bottom part - A single row indexed as part_size
-    ((filter & 0b01) != 0) &&
-      part << region(origin: [shape[0] - 1 - part_size, 0], size: [1, shape[1]],
+    part = []
+    
+    # top part - A single row indexed at part_size
+    ((filter & 0b10) != 0) &&
+      part << region(origin: [origin, 0], size: [1, shape[1]],
                      stride: [1, 1])
+
+    # bottom part - All rows from the top to the last row
+    ((filter & 0b01) != 0) &&
+      part << ((origin == shape[0] - 1)? @empty :
+                 region(origin: [origin + 1, 0], size: [shape[0] - origin - 1, shape[1]],
+                        stride: [1, 1]))
 
     part
     

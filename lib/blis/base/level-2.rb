@@ -25,44 +25,51 @@ class Blis
 
   #------------------------------------------------------------------------------------
   # A := A + alpha * conjx(x) * conjy(y)^T
+  # 
+  # @param alpha [Number]
+  # @param mA [MDArray] matrix
+  # @param vx [MDArray] vector x
+  # @param vy [MDArray] vector y
+  # @return [MDArray] the rank 1 update between vectors x and y
   #------------------------------------------------------------------------------------
 
-  def self.ger(alpha, a, vecx, vecy)
+  def self.ger(alpha, mA, vx, vy)
 
-    apart = a.part_by(:row, column_dir: :tb, filter: 0b10)
-    xi = MDArray::IteratorFastDouble.new(vecx)
+    apart = mA.part_by(:row, column_dir: :tb, filter: 0b10)
+    xi = MDArray::IteratorFastDouble.new(vx)
     
     loop do
-      # If we put mpart.next inside scal2v, ruby throws an exception since xi.next
-      # will be called before mpart.next and on the last call xi.next is out of bounds
-      # xin = alpha * xi.next
+      # If we put apart.next inside scal2v, ruby throws an exception since xi.next
+      # will be called before apart.next and on the last call xi.next is out of bounds
       top = apart.next
-      Blis.axpyv(alpha * xi.next, vecy, top)
+      Blis.axpyv(alpha * xi.next, vy, top)
     end
+    mA
 
   end
-  
   
   #------------------------------------------------------------------------------------
   # Generalized matrix vector multiply using dotv
   # y := beta*y + alfa*Ax
   # @param alpha [Number]
-  # @param matrix [MDArray] the matrix tha multiplies the vector
-  # @param vecx [MDArray] the vector that multiplies the matrix
+  # @param mA [MDArray] the matrix that multiplies the vector
+  # @param vx [MDArray] the vector that multiplies the matrix
   # @param beta [Number] number that multiplies vector y
-  # @param vecy [MDArray] vector y where the result is stored
+  # @param vy [MDArray] vector y where the result is stored
+  # @return vy [MDArray] the result of the multiplication
   #------------------------------------------------------------------------------------
 
-  def self.gemv_dot(alpha, matrix, vecx, beta, vecy)
+  def self.gemv_dot(alpha, mA, vx, beta, vy)
 
-    mpart = matrix.part_by(:row, column_dir: :tb, filter: 0b10)
-    ypart = vecy.part_by(:row, column_dir: :tb, filter: 0b10)
+    apart = mA.part_by(:row, column_dir: :tb, filter: 0b10)
+    ypart = vy.part_by(:row, column_dir: :tb, filter: 0b10)
 
     loop do
-      top = mpart.next
+      top = apart.next
       elmt = ypart.next
-      elmt[0, 0] = beta * elmt[0, 0] + alpha * Blis.dotv(top, vecx)
+      elmt[0, 0] = beta * elmt[0, 0] + alpha * Blis.dotv(top, vx)
     end
+    vy
 
   end
 

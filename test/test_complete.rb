@@ -22,7 +22,7 @@
 require_relative 'test_vec_partitions'
 require_relative 'test_matrix_partitions'
 
-require_relative 'test_blis_level-1v.rb'
-require_relative 'test_blis_level-2.rb'
-require_relative 'test_blis_level-3.rb'
-
+require_relative 'test_blis_level-1v'
+require_relative 'test_blis_level-2'
+require_relative 'test_blis_level-3'
+require_relative 'test_decomposition'

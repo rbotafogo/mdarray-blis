@@ -114,28 +114,27 @@ class MDArrayLaffTest < Test::Unit::TestCase
 
     should "partition a vector by rows bottom to top" do
 
+      # @c_vec = MDArray.double([4, 1], [1, 2, 3, 4])
+      
       at, ab = @c_vec.part_by_row_bt(part_size: 0)
-      assert_equal(true, MDArray.double([3, 1], [1, 2, 3]).identical(at))
-      assert_equal(true, MDArray.double([1, 1], [4]).identical(ab))
+      assert_equal(true, MDArray.double([1, 1], [4]).identical(at))
+      assert_equal(nil, ab)
 
-      # partitions the array with the left part with 2 columns and the right part
-      # with the rest of the columns
-      # al, ar = Laff.part_by_row_bt
       at, ab = @c_vec.part_by_row_bt(part_size: 1)
-      assert_equal(true, MDArray.double([2, 1], [1, 2]).identical(at))
-      assert_equal(true, MDArray.double([1, 1], [3]).identical(ab))
+      assert_equal(true, MDArray.double([1, 1], [3]).identical(at))
+      assert_equal(true, MDArray.double([1, 1], [4]).identical(ab))
 
       # filter the results returning only the bottom vector
       ret = @c_vec.part_by_row_bt(part_size: 2, filter: 0b01)
-      assert_equal(true, MDArray.double([1, 1], [2]).identical(ret[0]))
+      assert_equal(true, MDArray.double([2, 1], [3, 4]).identical(ret[0]))
 
       # filter the results returning only the top vector
       ret = @c_vec.part_by_row_bt(part_size: 2, filter: 0b10)
-      assert_equal(true, MDArray.double([1, 1], [1]).identical(ret[0]))
+      assert_equal(true, MDArray.double([1, 1], [2]).identical(ret[0]))
 
-      # filter the results returning only the left vector
+      # filter the results returning only the bottom vector
       ret = @c_vec.part_by_row_bt(part_size: 3, filter: 0b01)
-      assert_equal(true, MDArray.double([1, 1], [1]).identical(ret[0]))
+      assert_equal(true, MDArray.double([3, 1], [2, 3, 4]).identical(ret[0]))
 
     end
 
@@ -243,29 +242,38 @@ class MDArrayLaffTest < Test::Unit::TestCase
       assert_equal(true, MDArray.double([1,1], [1]).identical(partitions[0][0]))
       assert_equal(true, MDArray.double([1,3], [2, 3, 4]).identical(partitions[0][1]))
       
-      # Last partition is the EmptyArray
-      # assert_equal(0.0, partitions[i-1][1])
+    end
 
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "partition a vector bottom to top" do
+
+      # @c_vec = MDArray.double([4, 1], [1, 2, 3, 4])
+      
       @c_vec.part_by(:row, column_dir: :bt)
       i = 0
       partitions = []
       @c_vec.each_part do |top, bottom|
+        top.pp
+        bottom.pp
         partitions[i] = [top, bottom]
         i += 1
       end
       
-      assert_equal(true, MDArray.double([3,1], [1, 2, 3]).identical(partitions[0][0]))
-      assert_equal(true, MDArray.double([1,1], [4]).identical(partitions[0][1]))
+      # assert_equal(true, MDArray.double([3,1], [1, 2, 3]).identical(partitions[0][0]))
+      # assert_equal(true, MDArray.double([1,1], [4]).identical(partitions[0][1]))
       
-      assert_equal(true, MDArray.double([2,1], [1, 2]).identical(partitions[1][0]))
-      assert_equal(true, MDArray.double([1,1], [3]).identical(partitions[1][1]))
+      # assert_equal(true, MDArray.double([2,1], [1, 2]).identical(partitions[1][0]))
+      # assert_equal(true, MDArray.double([1,1], [3]).identical(partitions[1][1]))
 
     end
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
-    
+
     should "get every partition from a vector as enumerator" do
 
       @r_vec.part_by(:column, row_dir: :lr)
@@ -295,8 +303,6 @@ class MDArrayLaffTest < Test::Unit::TestCase
       
       # partition the column vector from top to bottom
       @c_vec.part_by(:row, column_dir: :tb)
-
-      p "==============partition synchronized==========="
 
       rvec = @r_vec.each_part
       cvec = @c_vec.each_part

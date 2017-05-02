@@ -69,7 +69,7 @@ class MDArrayTest < Test::Unit::TestCase
 
       MDArray::LinAlg.lu(@b)
       @b.pp
-=end
+
       MDArray::LinAlg.lu(@c)
       @c.pp
 
@@ -84,7 +84,14 @@ class MDArrayTest < Test::Unit::TestCase
       b = MDArray.double([3, 1], [2, 10, -2])
       MDArray::LinAlg.forward_solve(@d, b)
       b.pp
+=end
 
+      MDArray::LinAlg.lu(@c)
+      @c.pp
+
+      b = MDArray.double([3, 1], [2, 10, -2])
+      MDArray::LinAlg.back_substitution(@c, b)
+      
     end
     
   end

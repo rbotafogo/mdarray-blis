@@ -43,32 +43,6 @@ class MDArrayTest < Test::Unit::TestCase
       
     end
 
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "do dot product between two vectors using Blis library (no error checking)" do
-
-      assert_equal(17, Blis.dotv(@r_vec, @c_vec))
-      # does not do any error checking, so a colum vector dot a row vector works fine.
-      assert_equal(17, Blis.dotv(@c_vec, @r_vec))
-      
-    end
-
-    #--------------------------------------------------------------------------------------
-    #
-    #--------------------------------------------------------------------------------------
-
-    should "do dot product between two vectors using ruby interface" do
-
-      assert_equal(17, @r_vec.dotv(@c_vec))
-
-      # Will raise an error, since dotv expects a row vector as first operand
-      assert_raise (RuntimeError) { @c_vec.dotv(@r_vec) }
-      
-    end
-
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
@@ -83,6 +57,71 @@ class MDArrayTest < Test::Unit::TestCase
       # now destroy the first vector with the result
       Blis.axpyv(-1, v1, v2)
       assert_equal(true, v2.identical(axpy))
+      
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "copy a vector into another vector" do
+
+      v1 = MDArray.double([5, 1])
+      Blis.copyv(v1, @c_vec)
+      assert_equal(true, v1.identical(@c_vec))
+      
+    end
+    
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do dot product between two vectors using Blis library (no error checking)" do
+
+      # return the dot product as a scalar from dotv method
+      assert_equal(17, Blis.dotv(@r_vec, @c_vec))
+      # does not do any error checking, so a colum vector dot a row vector works fine.
+      assert_equal(17, Blis.dotv(@c_vec, @r_vec))
+
+      # fill a 1 x 1 matrix (scalar) with the result of the dot procuct.  This operation
+      # might be necessary when slicing/dicing a matrix that needs to be updated with
+      # the dot product
+      dot = MDArray.double([1, 1])
+      Blis.dotv(@r_vec, @c_vec, dot)
+      assert_equal(17, dot)
+
+    end
+
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do extended dot product between two vectors" do
+
+      # dotxv returns a scalar with the extended dot product
+      assert_equal(17, Blis.dotxv(1, @r_vec, @c_vec, 1))
+
+      # store thet dot product in a matrix of size [1, 1] (scalar)
+      dot = MDArray.double([1, 1], [0])
+      Blis.dotxv(1, @r_vec, @c_vec, 1, dot)
+      assert_equal(true, dot.identical(MDArray.double([1, 1], [17])));
+
+      dot[0, 0] = 5
+      Blis.dotxv(1, @r_vec, @c_vec, 1, dot)
+      assert_equal(true, dot.identical(MDArray.double([1, 1], [22])));
+      
+    end
+    
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
+
+    should "do dot product between two vectors using ruby interface" do
+
+      assert_equal(17, @r_vec.dotv(@c_vec))
+
+      # Will raise an error, since dotv expects a row vector as first operand
+      assert_raise (RuntimeError) { @c_vec.dotv(@r_vec) }
       
     end
 
