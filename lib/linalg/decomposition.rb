@@ -31,15 +31,16 @@ class MDArray
     # @param a [MDArray]
     #--------------------------------------------------------------------------------------
     
-    def self.lu(a)
+    def self.lu(mA)
 
-      apart = a.part_by(:six, row_dir: :lr, column_dir: :tb, filter: 0b101011)
+      apart = mA.part_by(:six, row_dir: :lr, column_dir: :tb, filter: 0b101011)
 
       loop do
         diag, l21, a12, a22 = apart.next
         Blis.scalv(1.0/diag[0, 0], l21)
         Blis.ger(-1, a22, l21, Blis.trnsp(a12))
       end
+      mA
       
     end
     

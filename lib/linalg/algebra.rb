@@ -57,14 +57,17 @@ class MDArray
 
     def self.back_substitution(mLU, vb)
 
-      mUpart = mLU.part_by(:six, row_dir: :rl, column_dir: :bt, filter: 0b001000)
+      mUpart = mLU.part_by(:six, row_dir: :rl, column_dir: :bt, filter: 0b100010)
       vbpart = vb.part_by(:row, column_dir: :bt, filter: 0b11)
 
       loop do
-        beta1, bottom = vbpart.next
-        beta1.pp
-        bottom.pp
-        
+        beta1, b2 = vbpart.next
+        v11, u12t = mUpart.next
+        #  b1     1    beta1    -1      u12t         b2
+        # rho := beta * rho + alpha * conjx(x)^T * conjy(y)
+        # dotxv(alpha, vx, vy, beta, rho)
+        Blis.dotxv(-1, u12t, b2, 1, beta1)
+        beta1[0, 0] /= v11[0, 0]
       end
       
     end

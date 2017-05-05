@@ -89,6 +89,8 @@ class Blis
   end
 
   #------------------------------------------------------------------------------------
+  # rho := conjx(x)^T * conjy(y)
+  #
   # Performs a dotv operation between two vectors.  No error checking is done. Vectors
   # can be row or column vectors that no error will be issued.
   # @param vecx [MDArray] an MDArray configured as a vector: dimension [x, 1] or [1, x]

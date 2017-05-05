@@ -35,68 +35,61 @@ class MDArrayTest < Test::Unit::TestCase
     #--------------------------------------------------------------------------------------
 
     setup do
-
+      
       @a = MDArray.double([4, 4],
                           [2, 0, 1, 2,
                            -2, -1, 1, -1,
                            4, -1, 5, 4,
                            -4, 1, -3, -8])
 
-      @b = MDArray.double([3, 3],
-                          [1, -2, 2,
-                           5, -15, 8,
-                           -2, -11, -11])
+      @b = MDArray.double([4, 1], [2, 10, -2, 5])
 
-      @c = MDArray.double([3, 3],
-                          [-2, 1, 2,
-                           4, -1, -5,
-                           2, -3, -1])
+      
+      @c = MDArray.double([4, 4],
+                          [2, 0, 1, 2,
+                           -2, -1, 1, -1,
+                           4, -1, 5, 4,
+                           -4, 1, -3, -8])
 
-      @d = MDArray.double([3, 3],
-                          [-1, 2, -3,
-                           -2, 2, -8,
-                           2, -6, 6])
+      @b_orig = MDArray.double([4, 1], [2, 10, -2, 5])
+      
     end
 
     #--------------------------------------------------------------------------------------
     #
     #--------------------------------------------------------------------------------------
 
-    should "LU decompose a matrix" do
+    should "forward solve an equation " do
 
-      lu_a = MDArray.double([4, 4],
-                            [2, 0, 1, 2,
-                             -1, -1, 2, 1,
-                             2, 1, 1, -1,
-                             -2, -1, 1, -2])
-      
+      # perform LU factorization of a
       MDArray::LinAlg.lu(@a)
-      assert_equal(true, lu_a.identical(@a))
 
-      MDArray::LinAlg.lu(@b)
-      @b.pp
+      a_b = MDArray.double([4, 1], [2, 12, -18, 39])
+      back_sub = MDArray.double([4, 1], [39.25, -106.5, -37.5, -19.5])
 
-      MDArray::LinAlg.lu(@c)
-      @c.pp
+      MDArray::LinAlg.forward_solve(@a, @b)
+      assert_equal(true, a_b.identical(@b))
 
-      b = MDArray.double([3, 1], [0, 4, -6])
-      MDArray::LinAlg.forward_solve(@c, b)
-      b.pp
+      MDArray::LinAlg.back_substitution(@a, @b)
+      assert_equal(true, back_sub.identical(@b))
 
-      p "d"
-      MDArray::LinAlg.lu(@d)
-      @d.pp
+      vy = MDArray.double([4, 1])
+      # def self.gemv_dot(alpha, mA, vx, beta, vy)
+      Blis.gemv_dot(1, @c, @b, 1, vy)
+      assert_equal(true, @b_orig.identical(vy))
 
-      b = MDArray.double([3, 1], [2, 10, -2])
-      MDArray::LinAlg.forward_solve(@d, b)
-      b.pp
+    end
+    
+    #--------------------------------------------------------------------------------------
+    #
+    #--------------------------------------------------------------------------------------
 
-      MDArray::LinAlg.lu(@c)
-      @c.pp
+    should "solve an equation " do
 
-      b = MDArray.double([3, 1], [2, 10, -2])
-      MDArray::LinAlg.back_substitution(@c, b)
-      
+      MDArray::LinAlg.back_substitution(
+        @a, MDArray::LinAlg.forward_solve(
+          MDArray::LinAlg.lu(@a), @b))
+
     end
     
   end
